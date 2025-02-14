@@ -1,28 +1,29 @@
-import { Deserialiser, Transaction, TransactionLike } from "transaction-serde";
-import { parseDateStrings } from "../../utilities/dates";
-import { parseString } from "@fast-csv/parse";
-import { mergeOptions } from "../../utilities/options";
-import { transactionKeys } from "../../types/common";
+import { parseString } from '@fast-csv/parse';
+import { Deserialiser, Transaction, TransactionLike } from 'transaction-serde';
+
+import { transactionKeys } from '../../types/common';
+import { parseDateStrings } from '../../utilities/dates';
+import { mergeOptions } from '../../utilities/options';
 
 type DeserialiserOptions = {
-    headers: boolean;
-    map: (object: Record<string, unknown>) => TransactionLike;
-}
+  headers: boolean;
+  map: (object: Record<string, unknown>) => TransactionLike;
+};
 
 const defaultOptions: DeserialiserOptions = {
-    headers: true,
-    map: (object) => {
-        const transaction: TransactionLike = {};
-        if (typeof object !== 'object' || object === null) return transaction;
-        transactionKeys.forEach((key) => {
-            const value = object[key];
-            if (typeof value === 'string') {
-                transaction[key] = value;
-            }
-        });
-        return transaction;
-    }
-}
+  headers: true,
+  map: (object) => {
+    const transaction: TransactionLike = {};
+    if (typeof object !== 'object' || object === null) return transaction;
+    transactionKeys.forEach((key) => {
+      const value = object[key];
+      if (typeof value === 'string') {
+        transaction[key] = value;
+      }
+    });
+    return transaction;
+  },
+};
 
 /**
  * Multiplies a value by 2. (Also a full example of TypeDoc's functionality.)
@@ -46,48 +47,52 @@ const defaultOptions: DeserialiserOptions = {
  * @anotherNote Some other value.
  */
 const handler: Deserialiser<DeserialiserOptions> = async (input, options) => {
-    const { headers, map } = mergeOptions(defaultOptions, options);
-    const objects: TransactionLike[] = await new Promise((resolve, reject) => {
-        const rows: TransactionLike[] = [];
-        parseString<Record<string, unknown>, Transaction>(input, { headers })
-        .transform(map)
-        .on('data', (row: TransactionLike) => rows.push(row))
-        .on('error', (error) => reject(error))
-        .on('end', () => resolve(rows))
-    })
-    const transactions: Transaction[] = [];
-    const dates: { date: string; transaction: Transaction }[] = [];
-    while (objects.length > 0) {
-        const object = objects.shift();
-        if (!object) continue;
-        if (typeof object.date !== 'string' || !['number', 'string'].includes(typeof object.amount)) continue;
-        const transaction: Transaction = {};
-        const dateString = object.date;
-        Object.keys(object).forEach((key) => {
-            switch(key) {
-                case 'date':
-                    dates.push({ date: dateString, transaction });
-                    break;
-                case 'amount':
-                    if (typeof object.amount === 'number') {
-                        transaction.amount = object.amount;
-                    } else if (typeof object.amount === 'string') {
-                        transaction.amount = parseFloat(object.amount);
-                    }
-                    break;
-                case 'payee':
-                case 'description':
-                case 'category':
-                    if (typeof object[key] === 'string') {
-                        transaction[key] = object[key] as string;
-                    }
-                    break;
-            }
-        });
-        transactions.push(transaction);
-    }
-    const parsedDates = parseDateStrings(dates.map(d => d.date));
-    parsedDates.forEach((date, i) => dates[i].transaction.date = date);
-    return transactions;
+  const { headers, map } = mergeOptions(defaultOptions, options);
+  const objects: TransactionLike[] = await new Promise((resolve, reject) => {
+    const rows: TransactionLike[] = [];
+    parseString<Record<string, unknown>, Transaction>(input, { headers })
+      .transform(map)
+      .on('data', (row: TransactionLike) => rows.push(row))
+      .on('error', (error) => reject(error))
+      .on('end', () => resolve(rows));
+  });
+  const transactions: Transaction[] = [];
+  const dates: { date: string; transaction: Transaction }[] = [];
+  while (objects.length > 0) {
+    const object = objects.shift();
+    if (!object) continue;
+    if (
+      typeof object.date !== 'string' ||
+      !['number', 'string'].includes(typeof object.amount)
+    )
+      continue;
+    const transaction: Transaction = {};
+    const dateString = object.date;
+    Object.keys(object).forEach((key) => {
+      switch (key) {
+        case 'date':
+          dates.push({ date: dateString, transaction });
+          break;
+        case 'amount':
+          if (typeof object.amount === 'number') {
+            transaction.amount = object.amount;
+          } else if (typeof object.amount === 'string') {
+            transaction.amount = parseFloat(object.amount);
+          }
+          break;
+        case 'payee':
+        case 'description':
+        case 'category':
+          if (typeof object[key] === 'string') {
+            transaction[key] = object[key] as string;
+          }
+          break;
+      }
+    });
+    transactions.push(transaction);
+  }
+  const parsedDates = parseDateStrings(dates.map((d) => d.date));
+  parsedDates.forEach((date, i) => (dates[i].transaction.date = date));
+  return transactions;
 };
 export default handler;

@@ -1,4 +1,4 @@
-import { Serialiser } from "transaction-serde";
+import { Serialiser } from 'transaction-serde';
 
 /**
  * Multiplies a value by 2. (Also a full example of TypeDoc's functionality.)
@@ -22,12 +22,12 @@ import { Serialiser } from "transaction-serde";
  * @anotherNote Some other value.
  */
 const handler: Serialiser = (input) => {
-    const output: { [key: string]: string | number }[] = [];
-    for (const transaction of input) {
-        const { date, ...rest } = transaction;
-        if (!(date instanceof Date)) continue;
-        output.push({ date: date.toISOString().substring(0, 10), ...rest });
-    }
-    return JSON.stringify(output);
+  const output: { [key: string]: string | number }[] = [];
+  for (const transaction of input) {
+    const { date, ...rest } = transaction;
+    if (!(date instanceof Date)) continue;
+    output.push({ date: date.toISOString().substring(0, 10), ...rest });
+  }
+  return JSON.stringify(output);
 };
 export default handler;

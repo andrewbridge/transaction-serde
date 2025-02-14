@@ -19,16 +19,22 @@
  */
 declare module 'transaction-serde' {
   type Transaction = Partial<{
-    date: Date,
-    amount: number,
-    payee: string,
-    description: string,
-    category: string
+    date: Date;
+    amount: number;
+    payee: string;
+    description: string;
+    category: string;
   }>;
   type TransactionLike = {
     [K in keyof Transaction]: string;
   };
-  
-  type Deserialiser<Options = never> = (input: string, options?: Options) => Transaction[] | Promise<Transaction[]>;
-  type Serialiser<Options = never> = (object: Transaction[], options?: Options) => string | Promise<string>;
+
+  type Deserialiser<Options = never> = (
+    input: string,
+    options?: Options
+  ) => Transaction[] | Promise<Transaction[]>;
+  type Serialiser<Options = never> = (
+    object: Transaction[],
+    options?: Options
+  ) => string | Promise<string>;
 }
