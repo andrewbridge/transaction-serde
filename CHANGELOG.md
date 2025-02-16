@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/andrewbridge/transaction-serde/compare/v1.1.0...v2.0.0) (2025-02-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* You must now import a level deeper, either choosing deserialiser or serialiser
+
+* export serialisers and deserialisers as named objects ([1ae7218](https://github.com/andrewbridge/transaction-serde/commit/1ae7218bf34d720b6626e4caa41bca2dda9c67e0))
+
 ## 1.1.0 (2025-02-16)
 
 
