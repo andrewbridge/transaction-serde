@@ -28,7 +28,7 @@ const handler: Serialiser = (input) => {
   const output: { [key: string]: string | number }[] = [];
   for (const transaction of input) {
     const { date, ...rest } = transaction;
-    if (!(date instanceof Date)) continue;
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) continue;
     output.push({ date: date.toISOString().substring(0, 10), ...rest });
   }
   const quoteColumns = transactionKeys.map((key) =>

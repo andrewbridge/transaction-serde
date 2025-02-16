@@ -46,22 +46,21 @@ const handler: Serialiser<SerialiserOptions> = (input, options) => {
   const { locale, header } = mergeOptions(defaultOptions, options);
   const output: string[] = [header];
   for (const transaction of input) {
+    const { date, amount } = transaction;
+    if (
+      !(date instanceof Date) ||
+      Number.isNaN(date.getTime()) ||
+      typeof amount !== 'number'
+    )
+      continue;
     Object.keys(transaction).forEach((key) => {
       const validKey = key as keyof Transaction;
       switch (validKey) {
         case 'date':
-          if (transaction.date instanceof Date) {
-            output.push(
-              fieldMap.date + transaction.date.toISOString().substring(0, 10)
-            );
-          }
+          output.push(fieldMap.date + date.toISOString().substring(0, 10));
           break;
         case 'amount':
-          if (typeof transaction.amount === 'number') {
-            output.push(
-              fieldMap.amount + transaction.amount.toLocaleString(locale)
-            );
-          }
+          output.push(fieldMap.amount + amount.toLocaleString(locale));
           break;
         default:
           if (typeof transaction[validKey] === 'string') {
