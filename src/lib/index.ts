@@ -1,1 +1,2 @@
-export * from './deserialisers';
+export * as deserialisers from './deserialisers';
+export * as serialisers from './serialisers';
