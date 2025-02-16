@@ -38,7 +38,12 @@ const handler: Deserialiser = (input: string) => {
   while (objects.length > 0) {
     const object = objects.shift();
     if (!object) continue;
-    if (typeof object.date !== 'string' || typeof object.amount !== 'number')
+    if (
+      typeof object.date !== 'string' ||
+      object.date.length === 0 ||
+      !['number', 'string'].includes(typeof object.amount) ||
+      String(object.amount).length === 0
+    )
       continue;
     const transaction: Transaction = {};
     const dateString = object.date;
@@ -50,6 +55,11 @@ const handler: Deserialiser = (input: string) => {
         case 'amount':
           if (typeof object.amount === 'number') {
             transaction.amount = object.amount;
+          } else if (typeof object.amount === 'string') {
+            transaction.amount = parseFloat(object.amount);
+            if (!Number.isFinite(transaction.amount)) {
+              throw new TypeError('Could not parse amount');
+            }
           }
           break;
         case 'payee':

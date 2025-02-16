@@ -35,6 +35,8 @@ const INVALID_AMOUNT_ROW = `"date","amount","payee","description","category"
 const INVALID_DATE_ROW = `"date","amount","payee","description","category"
 "13th Smarch 1995",134.99,"Energy","A-0A00AA00-001","Bills"`;
 
+const EMPTY_INPUT = '\n\n';
+
 test('deserialising csv', async (t) => {
   t.deepEqual(await csv(DATA), [
     {
@@ -89,4 +91,9 @@ test('csv deserialiser should fail on invalid date data', async (t) => {
 
 test('csv deserialiser should fail on invalid amount data', async (t) => {
   await t.throwsAsync(() => csv(INVALID_AMOUNT_ROW) as Promise<Transaction[]>);
+});
+
+test('csv deserialiser can handle empty rows', async (t) => {
+  const transactions = await csv(EMPTY_INPUT);
+  t.deepEqual(transactions, []);
 });

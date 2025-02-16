@@ -7,6 +7,7 @@ import { mergeOptions } from '../../utilities/options';
 
 type DeserialiserOptions = {
   headers: boolean;
+
   map: (object: Record<string, unknown>) => TransactionLike;
 };
 
@@ -64,8 +65,8 @@ const handler: Deserialiser<DeserialiserOptions> = async (input, options) => {
     if (
       typeof object.date !== 'string' ||
       object.date.length === 0 ||
-      !['number', 'string'].includes(typeof object.amount) ||
-      String(object.amount).length === 0
+      typeof object.amount !== 'string' ||
+      object.amount.length === 0
     )
       continue;
     const transaction: Transaction = {};
