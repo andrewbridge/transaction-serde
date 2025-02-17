@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/andrewbridge/transaction-serde/compare/v2.0.0...v2.1.0) (2025-02-17)
+
+
+### Features
+
+* add browser compatible builds of the library ([12ed6e9](https://github.com/andrewbridge/transaction-serde/commit/12ed6e942f96a46481972e12aa92990c03e6324f))
+
 ## [2.0.0](https://github.com/andrewbridge/transaction-serde/compare/v1.1.0...v2.0.0) (2025-02-16)
 
 
