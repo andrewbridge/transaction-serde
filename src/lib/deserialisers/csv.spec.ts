@@ -37,8 +37,8 @@ const INVALID_DATE_ROW = `"date","amount","payee","description","category"
 
 const EMPTY_INPUT = '\n\n';
 
-test('deserialising csv', async (t) => {
-  t.deepEqual(await csv(DATA), [
+test('deserialising csv', (t) => {
+  t.deepEqual(csv(DATA), [
     {
       date: new UTCDateMini(2024, 3, 1),
       amount: 134.99,
@@ -63,12 +63,12 @@ test('deserialising csv', async (t) => {
   ]);
 });
 
-test('csv deserialiser should fail on malformed data', async (t) => {
-  await t.throwsAsync(() => csv(MALFORMED_DATA) as Promise<Transaction[]>);
+test('csv deserialiser should fail on malformed data', (t) => {
+  t.throws(() => csv(MALFORMED_DATA));
 });
 
-test('csv deserialiser should ignore invalid rows', async (t) => {
-  const transactions = await csv(EMPTY_DATA_ROWS);
+test('csv deserialiser should ignore invalid rows', (t) => {
+  const transactions = csv(EMPTY_DATA_ROWS);
   t.deepEqual(transactions, [
     {
       date: new UTCDateMini(2024, 3, 1),
@@ -80,20 +80,19 @@ test('csv deserialiser should ignore invalid rows', async (t) => {
   ]);
 });
 
-test('csv deserialiser should ignore items with critical missing fields', async (t) => {
-  t.true((await csv(MISSING_AMOUNT_COLUMN)).length === 0);
-  t.true((await csv(MISSING_DATE_COLUMN)).length === 0);
+test('csv deserialiser should ignore items with critical missing fields', (t) => {
+  t.true((csv(MISSING_AMOUNT_COLUMN) as Transaction[]).length === 0);
+  t.true((csv(MISSING_DATE_COLUMN) as Transaction[]).length === 0);
 });
 
-test('csv deserialiser should fail on invalid date data', async (t) => {
-  await t.throwsAsync(() => csv(INVALID_DATE_ROW) as Promise<Transaction[]>);
+test('csv deserialiser should fail on invalid date data', (t) => {
+  t.throws(() => csv(INVALID_DATE_ROW));
 });
 
-test('csv deserialiser should fail on invalid amount data', async (t) => {
-  await t.throwsAsync(() => csv(INVALID_AMOUNT_ROW) as Promise<Transaction[]>);
+test('csv deserialiser should fail on invalid amount data', (t) => {
+  t.throws(() => csv(INVALID_AMOUNT_ROW));
 });
 
-test('csv deserialiser can handle empty rows', async (t) => {
-  const transactions = await csv(EMPTY_INPUT);
-  t.deepEqual(transactions, []);
+test('csv deserialiser throws when given empty rows', (t) => {
+  t.throws(() => csv(EMPTY_INPUT));
 });

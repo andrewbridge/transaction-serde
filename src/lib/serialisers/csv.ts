@@ -1,4 +1,4 @@
-import { writeToString } from '@fast-csv/format';
+import { unparse } from 'papaparse';
 import { Serialiser } from 'transaction-serde';
 
 import { transactionKeys } from '../../types/common';
@@ -34,10 +34,10 @@ const handler: Serialiser = (input) => {
   const quoteColumns = transactionKeys.map((key) =>
     key === 'amount' ? false : true
   );
-  return writeToString(output, {
-    headers: true,
-    quoteColumns,
-    quoteHeaders: true,
+  return unparse(output, {
+    header: true,
+    quotes: quoteColumns,
+    newline: '\n',
   });
 };
 export default handler;

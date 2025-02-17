@@ -54,7 +54,7 @@ const PARTIALLY_INVALID_DATA = [
 test('serialising csv', async (t) => {
   t.is(
     await csv(DATA),
-    '"date","amount","payee","description","category"\n' +
+    '"date",amount,"payee","description","category"\n' +
       '"2024-04-01",134.99,"Acme","Acme Salary April","Income"\n' +
       '"2024-04-02",-34.99,"Internet","INET12345678-0","Bills"\n' +
       '"2024-04-02",-100,"Energy","A-0A00AA00-001","Bills"'
@@ -64,7 +64,7 @@ test('serialising csv', async (t) => {
 test('csv serialiser will ignore items with invalid dates', async (t) => {
   t.is(
     await csv(PARTIALLY_INVALID_DATA),
-    '"date","amount","payee","description","category"\n' +
+    '"date",amount,"payee","description","category"\n' +
       '"2024-04-01",134.99,"Acme","Acme Salary April","Income"'
   );
 });
