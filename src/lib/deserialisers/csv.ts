@@ -51,6 +51,9 @@ const handler: Deserialiser<DeserialiserOptions> = (input, options) => {
   const { headers, map } = mergeOptions(defaultOptions, options);
   const objects = parse(input.trim(), { header: headers });
   if (objects.errors.length > 0) {
+    console.debug(objects.errors);
+  }
+  if (objects.errors.length > 0 && objects.data.length === 0) {
     throw new Error('Invalid CSV data');
   }
   /*   const objects: TransactionLike[] = await new Promise((resolve, reject) => {
