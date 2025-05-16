@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.0](https://github.com/andrewbridge/transaction-serde/compare/v2.1.2...v2.2.0) (2025-05-16)
+
+
+### Features
+
+* log CSV errors but only throw an error if no data is parsed ([e3b1013](https://github.com/andrewbridge/transaction-serde/commit/e3b10138da66aea380ac950612f07d94859112a0))
+
+
+### Bug Fixes
+
+* trim whitespace from CSV input to stop papaparse from complaining about empty rows ([5b84a40](https://github.com/andrewbridge/transaction-serde/commit/5b84a405a69bb105fac09a02c5517af6b87fd24d))
+
 ### [2.1.2](https://github.com/andrewbridge/transaction-serde/compare/v2.1.1...v2.1.2) (2025-02-17)
 
 ### [2.1.1](https://github.com/andrewbridge/transaction-serde/compare/v2.1.0...v2.1.1) (2025-02-17)
