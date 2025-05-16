@@ -49,7 +49,7 @@ const defaultOptions: DeserialiserOptions = {
  */
 const handler: Deserialiser<DeserialiserOptions> = (input, options) => {
   const { headers, map } = mergeOptions(defaultOptions, options);
-  const objects = parse(input, { header: headers });
+  const objects = parse(input.trim(), { header: headers });
   if (objects.errors.length > 0) {
     throw new Error('Invalid CSV data');
   }
