@@ -279,3 +279,67 @@ const qif = serialisers.qif(transactions, {
   header: '!Type:Bank'
 });
 ```
+
+### Using Utilities for Unknown Bank Exports
+
+When you receive a CSV export from an unknown bank with non-standard column names, use the utilities to inspect and automatically guess the field mappings:
+
+```typescript
+import { deserialisers, utils } from 'transaction-serde';
+import fs from 'fs';
+
+// Load an unknown bank export
+const bankExport = fs.readFileSync('bank-export.csv', 'utf8');
+
+// Step 1: Inspect to understand the structure
+const report = utils.inspect(bankExport);
+console.log('Format:', report.format);
+console.log('Fields:', report.fields);
+console.log('Sample:', report.sample);
+console.log('Total records:', report.recordCount);
+
+// Step 2: Guess field mappings from header names
+const guessed = utils.guess(report.fields, { sample: report.sample });
+console.log('Guessed mapping:', guessed.mapping);
+console.log('Unmapped fields:', guessed.unmappedFields);
+
+// Step 3: Review guesses and adjust if needed
+const finalMapping = {
+  ...guessed.mapping,
+  // Override any incorrect guesses
+  // description: 'Notes'
+};
+
+// Step 4: Create mapper and parse
+const mapper = utils.createFieldMapper(finalMapping);
+const transactions = deserialisers.csv(bankExport, { map: mapper });
+
+// Convert to desired format
+const qif = serialisers.qif(transactions);
+```
+
+### Handling Debit/Credit Columns
+
+Some bank exports have separate columns for debits and credits. Use a custom transform function:
+
+```typescript
+import { deserialisers, utils } from 'transaction-serde';
+
+const bankCsv = `Date,Debit,Credit,Description
+15/01/2024,,100.00,SALARY PAYMENT
+16/01/2024,25.50,,COFFEE SHOP`;
+
+const mapper = utils.createFieldMapper({
+  date: 'Date',
+  amount: (row) => {
+    const debit = parseFloat(row['Debit'] as string) || 0;
+    const credit = parseFloat(row['Credit'] as string) || 0;
+    return String(credit - debit);
+  },
+  description: 'Description'
+});
+
+const transactions = deserialisers.csv(bankCsv, { map: mapper });
+// First transaction: amount = 100
+// Second transaction: amount = -25.50
+```
