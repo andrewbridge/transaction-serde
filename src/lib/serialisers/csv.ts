@@ -4,25 +4,25 @@ import { Serialiser } from 'transaction-serde';
 import { transactionKeys } from '../../types/common';
 
 /**
- * Multiplies a value by 2. (Also a full example of TypeDoc's functionality.)
+ * Serialises an array of transactions to CSV format.
  *
- * ### Example (es module)
- * ```js
- * import { double } from 'typescript-starter'
- * console.log(double(4))
- * // => 8
+ * Converts transaction objects to a CSV string with headers. Dates are formatted as ISO 8601
+ * date strings (YYYY-MM-DD). String fields are quoted while numeric amounts are unquoted.
+ * Transactions with invalid or missing dates are skipped.
+ *
+ * @example
+ * ```ts
+ * import { serialisers } from 'transaction-serde';
+ *
+ * const transactions = [
+ *   { date: new Date('2024-01-15'), amount: 100, payee: 'Store' }
+ * ];
+ * const csv = serialisers.csv(transactions);
+ * // => '"date",100,"Store"\n"2024-01-15",100,"Store"'
  * ```
  *
- * ### Example (commonjs)
- * ```js
- * var double = require('typescript-starter').double;
- * console.log(double(4))
- * // => 8
- * ```
- *
- * @param value - Comment describing the `value` parameter.
- * @returns Comment describing the return type.
- * @anotherNote Some other value.
+ * @param input - Array of transaction objects to serialise.
+ * @returns A CSV string representation of the transactions with headers.
  */
 const handler: Serialiser = (input) => {
   const output: { [key: string]: string | number }[] = [];

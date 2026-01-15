@@ -22,25 +22,28 @@ const defaultOptions: SerialiserOptions = {
 };
 
 /**
- * Multiplies a value by 2. (Also a full example of TypeDoc's functionality.)
+ * Serialises an array of transactions to QIF (Quicken Interchange Format).
  *
- * ### Example (es module)
- * ```js
- * import { double } from 'typescript-starter'
- * console.log(double(4))
- * // => 8
+ * Converts transaction objects to a QIF string. Each transaction is represented with
+ * field indicators (D for date, T for amount, P for payee, M for description, L for category).
+ * Transactions without valid dates or amounts are skipped.
+ *
+ * @example
+ * ```ts
+ * import { serialisers } from 'transaction-serde';
+ *
+ * const transactions = [
+ *   { date: new Date('2024-01-15'), amount: 100, payee: 'Store' }
+ * ];
+ * const qif = serialisers.qif(transactions);
+ * // => '!Type:Bank\nD2024-01-15\nT100\nPStore\n^'
  * ```
  *
- * ### Example (commonjs)
- * ```js
- * var double = require('typescript-starter').double;
- * console.log(double(4))
- * // => 8
- * ```
- *
- * @param value - Comment describing the `value` parameter.
- * @returns Comment describing the return type.
- * @anotherNote Some other value.
+ * @param input - Array of transaction objects to serialise.
+ * @param options - Optional configuration for serialisation.
+ * @param options.locale - Locale for number formatting (default: 'en-US').
+ * @param options.header - QIF account type header (default: '!Type:Bank').
+ * @returns A QIF string representation of the transactions.
  */
 const handler: Serialiser<SerialiserOptions> = (input, options) => {
   const { locale, header } = mergeOptions(defaultOptions, options);

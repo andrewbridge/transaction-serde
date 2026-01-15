@@ -1,25 +1,24 @@
 import { Serialiser } from 'transaction-serde';
 
 /**
- * Multiplies a value by 2. (Also a full example of TypeDoc's functionality.)
+ * Serialises an array of transactions to JSON format.
  *
- * ### Example (es module)
- * ```js
- * import { double } from 'typescript-starter'
- * console.log(double(4))
- * // => 8
+ * Converts transaction objects to a JSON string with dates formatted as ISO 8601 date strings (YYYY-MM-DD).
+ * Transactions with invalid or missing dates are skipped.
+ *
+ * @example
+ * ```ts
+ * import { serialisers } from 'transaction-serde';
+ *
+ * const transactions = [
+ *   { date: new Date('2024-01-15'), amount: 100, payee: 'Store' }
+ * ];
+ * const json = serialisers.json(transactions);
+ * // => '[{"date":"2024-01-15","amount":100,"payee":"Store"}]'
  * ```
  *
- * ### Example (commonjs)
- * ```js
- * var double = require('typescript-starter').double;
- * console.log(double(4))
- * // => 8
- * ```
- *
- * @param value - Comment describing the `value` parameter.
- * @returns Comment describing the return type.
- * @anotherNote Some other value.
+ * @param input - Array of transaction objects to serialise.
+ * @returns A JSON string representation of the transactions.
  */
 const handler: Serialiser = (input) => {
   const output: { [key: string]: string | number }[] = [];

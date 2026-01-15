@@ -1,6 +1,14 @@
 import { UTCDateMini } from '@date-fns/utc';
 import { parse } from 'date-fns/parse';
 
+/**
+ * Default date formats supported for parsing.
+ *
+ * Includes variations with `/`, `-`, and no separators for each base pattern.
+ * Supports both numeric formats (e.g., 2024/01/15) and text formats (e.g., 15 January 2024).
+ *
+ * @internal
+ */
 const defaultFormats = [
   'yyyy/MM/dd',
   'yyyy/M/d',
@@ -17,13 +25,31 @@ const defaultFormats = [
   pattern.replaceAll('/', '-'),
   pattern.replaceAll('/', ''),
 ]);
+
 /**
- * Parse a set of date strings that could be one of many formats to a set of Date objects.
+ * Parses an array of date strings into Date objects.
  *
- * @param dates The date strings to parse
- * @param formats The formats to try parsing the dates with, in order of preference. Optional; defaults to standard numeric
- * @throws if the date strings were not parsable using any of the formats
- * @returns An array of date objects representing the same dates as the date strings provided
+ * Attempts to parse all dates using a consistent format. If all dates in the array
+ * can be parsed using the same format, returns an array of UTC Date objects.
+ * This ensures consistent timezone handling across different environments.
+ *
+ * @param dates - The date strings to parse.
+ * @param formats - Optional array of date-fns format patterns to try, in order of preference.
+ *                  Defaults to common numeric and text date formats.
+ * @returns An array of UTC Date objects corresponding to the input date strings.
+ * @throws {Error} If the dates cannot be parsed using any of the provided formats.
+ *
+ * @example
+ * ```ts
+ * const dates = parseDateStrings(['2024-01-15', '2024-02-20']);
+ * // => [Date('2024-01-15'), Date('2024-02-20')]
+ * ```
+ *
+ * @example
+ * ```ts
+ * // With custom formats
+ * const dates = parseDateStrings(['15/01/2024'], ['dd/MM/yyyy']);
+ * ```
  */
 export const parseDateStrings = (
   dates: string[],

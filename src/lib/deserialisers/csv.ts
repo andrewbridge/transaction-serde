@@ -27,25 +27,41 @@ const defaultOptions: DeserialiserOptions = {
 };
 
 /**
- * Multiplies a value by 2. (Also a full example of TypeDoc's functionality.)
+ * Deserialises a CSV string to an array of transactions.
  *
- * ### Example (es module)
- * ```js
- * import { double } from 'typescript-starter'
- * console.log(double(4))
- * // => 8
+ * Parses a CSV string with headers into transaction objects. Dates are automatically
+ * parsed from various string formats. Rows missing required fields (date, amount)
+ * are skipped. A custom mapping function can be provided to handle non-standard CSV formats.
+ *
+ * @example
+ * ```ts
+ * import { deserialisers } from 'transaction-serde';
+ *
+ * const csv = 'date,amount,payee\n2024-01-15,100,Store';
+ * const transactions = deserialisers.csv(csv);
+ * // => [{ date: Date, amount: 100, payee: 'Store' }]
  * ```
  *
- * ### Example (commonjs)
- * ```js
- * var double = require('typescript-starter').double;
- * console.log(double(4))
- * // => 8
+ * @example
+ * ```ts
+ * // Custom mapping for non-standard CSV headers
+ * const csv = 'Date,Value,Merchant\n2024-01-15,100,Store';
+ * const transactions = deserialisers.csv(csv, {
+ *   map: (row) => ({
+ *     date: row.Date,
+ *     amount: row.Value,
+ *     payee: row.Merchant
+ *   })
+ * });
  * ```
  *
- * @param value - Comment describing the `value` parameter.
- * @returns Comment describing the return type.
- * @anotherNote Some other value.
+ * @param input - A CSV string with headers.
+ * @param options - Optional configuration for parsing.
+ * @param options.headers - Whether the CSV has headers (default: true).
+ * @param options.map - Custom function to map CSV rows to transaction-like objects.
+ * @returns An array of parsed transaction objects.
+ * @throws {Error} If the CSV data is invalid.
+ * @throws {TypeError} If an amount cannot be parsed as a number.
  */
 const handler: Deserialiser<DeserialiserOptions> = (input, options) => {
   const { headers, map } = mergeOptions(defaultOptions, options);

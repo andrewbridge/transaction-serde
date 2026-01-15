@@ -17,25 +17,24 @@ const fieldMap: { [key: string]: keyof Transaction } = {
 };
 
 /**
- * Multiplies a value by 2. (Also a full example of TypeDoc's functionality.)
+ * Deserialises a QIF (Quicken Interchange Format) string to an array of transactions.
  *
- * ### Example (es module)
- * ```js
- * import { double } from 'typescript-starter'
- * console.log(double(4))
- * // => 8
+ * Parses a QIF string into transaction objects. Supports standard QIF field indicators
+ * (D for date, T for amount, P for payee, M for description, L for category).
+ * Dates are automatically parsed from various string formats.
+ *
+ * @example
+ * ```ts
+ * import { deserialisers } from 'transaction-serde';
+ *
+ * const qif = '!Type:Bank\nD2024-01-15\nT100\nPStore\n^';
+ * const transactions = deserialisers.qif(qif);
+ * // => [{ date: Date, amount: 100, payee: 'Store' }]
  * ```
  *
- * ### Example (commonjs)
- * ```js
- * var double = require('typescript-starter').double;
- * console.log(double(4))
- * // => 8
- * ```
- *
- * @param value - Comment describing the `value` parameter.
- * @returns Comment describing the return type.
- * @anotherNote Some other value.
+ * @param input - A QIF string with a valid header.
+ * @returns An array of parsed transaction objects.
+ * @throws {Error} If the QIF header is unknown or invalid.
  */
 const handler: Deserialiser = (input: string) => {
   const lines = input.trim().split('\n');

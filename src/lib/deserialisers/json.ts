@@ -3,25 +3,26 @@ import { Deserialiser, Transaction } from 'transaction-serde';
 import { parseDateStrings } from '../../utilities/dates';
 
 /**
- * Multiplies a value by 2. (Also a full example of TypeDoc's functionality.)
+ * Deserialises a JSON string to an array of transactions.
  *
- * ### Example (es module)
- * ```js
- * import { double } from 'typescript-starter'
- * console.log(double(4))
- * // => 8
+ * Parses a JSON string containing an array of transaction objects. Dates are automatically
+ * parsed from various string formats. Transactions missing required fields (date, amount)
+ * are skipped.
+ *
+ * @example
+ * ```ts
+ * import { deserialisers } from 'transaction-serde';
+ *
+ * const json = '[{"date":"2024-01-15","amount":100,"payee":"Store"}]';
+ * const transactions = deserialisers.json(json);
+ * // => [{ date: Date, amount: 100, payee: 'Store' }]
  * ```
  *
- * ### Example (commonjs)
- * ```js
- * var double = require('typescript-starter').double;
- * console.log(double(4))
- * // => 8
- * ```
- *
- * @param value - Comment describing the `value` parameter.
- * @returns Comment describing the return type.
- * @anotherNote Some other value.
+ * @param input - A JSON string containing an array of transaction objects.
+ * @returns An array of parsed transaction objects.
+ * @throws {Error} If the input is not valid JSON.
+ * @throws {Error} If the input is not an array.
+ * @throws {TypeError} If an amount cannot be parsed as a number.
  */
 const handler: Deserialiser = (input: string) => {
   let objects: { [key: string]: unknown }[] = [];
