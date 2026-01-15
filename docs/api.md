@@ -17,6 +17,10 @@ Complete API documentation for transaction-serde.
   - [serialisers.json](#serialisersjson)
   - [serialisers.csv](#serialiserscsv)
   - [serialisers.qif](#serialisersqif)
+- [Utilities](#utilities)
+  - [utils.inspect](#utilsinspect)
+  - [utils.guess](#utilsguess)
+  - [utils.createFieldMapper](#utilscreatefieldmapper)
 
 ---
 
@@ -405,3 +409,255 @@ const qifCredit = serialisers.qif(transactions, {
 **Notes:**
 - Transactions without valid dates or amounts are skipped
 - The locale option affects number formatting (e.g., decimal separators)
+
+---
+
+## Utilities
+
+Functions for inspecting data, guessing field mappings, and creating mappers.
+
+### utils.inspect
+
+```typescript
+function inspect(input: string, options?: InspectOptions): InspectResult
+```
+
+Inspects CSV or JSON data and returns a uniform report with headers and sample records. Useful for previewing unknown data before parsing.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `input` | `string` | CSV or JSON string to inspect |
+| `options` | `InspectOptions` | Optional configuration |
+
+**Options:**
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `sampleSize` | `number` | `3` | Number of sample records to return |
+| `attemptParsing` | `boolean` | `true` | Whether to attempt parsing dates and numbers in the sample |
+
+**Returns:** `InspectResult`
+
+```typescript
+type InspectResult = {
+  format: 'csv' | 'json';           // Detected format
+  fields: string[];                  // Field names/headers
+  sample: Record<string, unknown>[]; // Sample records
+  recordCount: number;               // Total number of records
+};
+```
+
+**Example:**
+
+```typescript
+import { utils } from 'transaction-serde';
+
+const csv = `Date,Amount,Merchant
+2024-01-15,100,Store
+2024-01-16,-50,Coffee Shop`;
+
+const report = utils.inspect(csv);
+// {
+//   format: 'csv',
+//   fields: ['Date', 'Amount', 'Merchant'],
+//   sample: [
+//     { Date: '2024-01-15', Amount: 100, Merchant: 'Store' },
+//     { Date: '2024-01-16', Amount: -50, Merchant: 'Coffee Shop' }
+//   ],
+//   recordCount: 2
+// }
+
+// Without parsing
+const rawReport = utils.inspect(csv, { attemptParsing: false });
+// sample: [{ Date: '2024-01-15', Amount: '100', Merchant: 'Store' }, ...]
+```
+
+**Notes:**
+- Automatically detects JSON vs CSV format
+- When `attemptParsing` is true, numeric values are converted to numbers and date strings to ISO format
+- Values that can't be parsed are returned as raw strings
+
+---
+
+### utils.guess
+
+```typescript
+function guess(fields: string[], options?: GuessOptions): GuessResult
+```
+
+Uses heuristics to guess field mappings from header names. Matches common patterns like "Transaction Date", "Amount", "Merchant", etc.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `fields` | `string[]` | Array of field names to match |
+| `options` | `GuessOptions` | Optional configuration |
+
+**Options:**
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `minConfidence` | `'high' \| 'medium'` | `'medium'` | Minimum confidence to include a mapping |
+| `sample` | `Record<string, unknown>[]` | `[]` | Sample records for value-based heuristics |
+
+**Returns:** `GuessResult`
+
+```typescript
+type GuessResult = {
+  guesses: FieldGuess[];                           // Individual field guesses
+  unmappedFields: string[];                        // Fields that couldn't be mapped
+  mapping: Partial<Record<TransactionKey, string>>; // Ready-to-use mapping object
+};
+
+type FieldGuess = {
+  sourceField: string;           // Original field name
+  targetField: TransactionKey;   // Matched transaction field
+  confidence: 'high' | 'medium'; // Confidence level
+  reason: string;                // Explanation for the match
+};
+```
+
+**High Confidence Patterns:**
+
+| Target Field | Matches |
+|--------------|---------|
+| `date` | date, transaction date, posting date, value date, effective date |
+| `amount` | amount, value, transaction amount |
+| `payee` | payee, merchant, vendor, recipient, beneficiary |
+| `description` | description, memo, note, narrative |
+| `category` | category, classification |
+
+**Medium Confidence Patterns:**
+
+| Target Field | Matches |
+|--------------|---------|
+| `date` | *date (suffix), when, timestamp |
+| `amount` | debit, credit, sum, total, price |
+| `payee` | name, counterparty, store |
+| `description` | details, reference, particulars |
+| `category` | type, class, group, tag |
+
+**Example:**
+
+```typescript
+import { utils } from 'transaction-serde';
+
+const result = utils.guess(['Transaction Date', 'Value', 'Merchant', 'Notes', 'ID']);
+// {
+//   guesses: [
+//     { sourceField: 'Transaction Date', targetField: 'date', confidence: 'high', ... },
+//     { sourceField: 'Value', targetField: 'amount', confidence: 'high', ... },
+//     { sourceField: 'Merchant', targetField: 'payee', confidence: 'high', ... },
+//     { sourceField: 'Notes', targetField: 'description', confidence: 'high', ... }
+//   ],
+//   unmappedFields: ['ID'],
+//   mapping: {
+//     date: 'Transaction Date',
+//     amount: 'Value',
+//     payee: 'Merchant',
+//     description: 'Notes'
+//   }
+// }
+
+// With value-based boosting
+const boosted = utils.guess(['When', 'Total'], {
+  sample: [{ When: '2024-01-15', Total: '100.50' }]
+});
+// 'When' and 'Total' get boosted to high confidence based on value patterns
+```
+
+**Notes:**
+- Each target field is mapped at most once (first match wins)
+- Fields that don't match any pattern are listed in `unmappedFields`
+- Providing sample data can boost medium confidence matches to high
+
+---
+
+### utils.createFieldMapper
+
+```typescript
+function createFieldMapper(mapping: FieldMapping): MapFunction
+```
+
+Creates a map function compatible with the CSV deserializer's `map` option from a simple field mapping configuration.
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `mapping` | `FieldMapping` | Object mapping transaction keys to source field names or transform functions |
+
+**FieldMapping Type:**
+
+```typescript
+type FieldMapping = Partial<Record<
+  TransactionKey,
+  string | ((row: Record<string, unknown>) => string)
+>>;
+```
+
+**Returns:** `MapFunction` - A function compatible with `deserialisers.csv()`'s `map` option
+
+**Example - Simple String Mapping:**
+
+```typescript
+import { deserialisers, utils } from 'transaction-serde';
+
+const csv = `Transaction Date,Value,Merchant
+2024-01-15,100,Store`;
+
+const mapper = utils.createFieldMapper({
+  date: 'Transaction Date',
+  amount: 'Value',
+  payee: 'Merchant'
+});
+
+const transactions = deserialisers.csv(csv, { map: mapper });
+```
+
+**Example - Custom Transform Functions:**
+
+```typescript
+// Handle separate debit/credit columns
+const mapper = utils.createFieldMapper({
+  date: 'Date',
+  amount: (row) => {
+    const debit = parseFloat(row['Debit'] as string) || 0;
+    const credit = parseFloat(row['Credit'] as string) || 0;
+    return String(credit - debit);
+  },
+  payee: 'Merchant',
+  description: (row) => `${row['Reference']} - ${row['Notes']}`
+});
+```
+
+**Example - Full Workflow:**
+
+```typescript
+import { deserialisers, utils } from 'transaction-serde';
+
+// 1. Inspect the data
+const report = utils.inspect(bankExportCsv);
+
+// 2. Guess mappings
+const guessed = utils.guess(report.fields, { sample: report.sample });
+
+// 3. Review and optionally adjust the mapping
+const mapping = {
+  ...guessed.mapping,
+  description: 'Notes'  // Override if needed
+};
+
+// 4. Create mapper and parse
+const mapper = utils.createFieldMapper(mapping);
+const transactions = deserialisers.csv(bankExportCsv, { map: mapper });
+```
+
+**Notes:**
+- String values map directly from the source field name
+- Function values receive the entire row and must return a string
+- Missing or empty values are omitted from the result
+- Transform function errors are caught and the field is skipped

@@ -11,6 +11,8 @@ A TypeScript library for serialising and deserialising financial transaction dat
 - **Automatic date parsing**: Handles multiple date formats automatically
 - **TypeScript support**: Full type definitions included
 - **Flexible CSV handling**: Custom mapping functions for non-standard CSV formats
+- **Data inspection**: Inspect unknown data to see headers and sample records
+- **Field guessing**: Heuristics to automatically guess field mappings for bank exports
 - **Browser & Node.js**: Works in both environments
 
 ## Installation
@@ -36,6 +38,30 @@ const json = serialisers.json(transactions);
 
 // Convert to QIF
 const qif = serialisers.qif(transactions);
+```
+
+### Working with Unknown Data
+
+When you have a bank export with non-standard column names, use the utilities to inspect and guess mappings:
+
+```typescript
+import { deserialisers, utils } from 'transaction-serde';
+
+// Inspect unknown CSV to see its structure
+const bankExport = `Transaction Date,Value,Merchant,Notes
+2024-01-15,100,Employer,Monthly salary
+2024-01-16,-25.50,Coffee Shop,Morning coffee`;
+
+const report = utils.inspect(bankExport);
+// => { format: 'csv', fields: ['Transaction Date', 'Value', 'Merchant', 'Notes'], ... }
+
+// Guess field mappings from headers
+const guessed = utils.guess(report.fields, { sample: report.sample });
+// => { mapping: { date: 'Transaction Date', amount: 'Value', payee: 'Merchant', ... } }
+
+// Create a mapper and parse
+const mapper = utils.createFieldMapper(guessed.mapping);
+const transactions = deserialisers.csv(bankExport, { map: mapper });
 ```
 
 ## API
@@ -145,6 +171,69 @@ const qif = serialisers.qif(transactions, {
 - `!Type:CCard` - Credit card
 - `!Type:Oth A` - Other assets
 - `!Type:Oth L` - Liabilities
+
+### Utilities
+
+#### `utils.inspect(input: string, options?): InspectResult`
+
+Inspects CSV or JSON data to extract field names and sample records.
+
+```typescript
+const report = utils.inspect(csvOrJsonString);
+// => {
+//   format: 'csv',
+//   fields: ['Date', 'Amount', 'Merchant'],
+//   sample: [{ Date: '2024-01-15', Amount: 100, Merchant: 'Store' }],
+//   recordCount: 100
+// }
+```
+
+**Options:**
+- `sampleSize` (number): Number of sample records to return. Default: `3`
+- `attemptParsing` (boolean): Try to parse dates and numbers. Default: `true`
+
+#### `utils.guess(fields: string[], options?): GuessResult`
+
+Uses heuristics to guess field mappings from header names.
+
+```typescript
+const result = utils.guess(['Transaction Date', 'Value', 'Merchant']);
+// => {
+//   mapping: { date: 'Transaction Date', amount: 'Value', payee: 'Merchant' },
+//   guesses: [{ sourceField: 'Transaction Date', targetField: 'date', confidence: 'high', ... }],
+//   unmappedFields: []
+// }
+```
+
+**Options:**
+- `minConfidence` ('high' | 'medium'): Minimum confidence to include. Default: `'medium'`
+- `sample` (Record[]): Sample records to analyze for value-based heuristics
+
+#### `utils.createFieldMapper(mapping): MapFunction`
+
+Creates a map function from a simple field mapping configuration.
+
+```typescript
+// Simple string mappings
+const mapper = utils.createFieldMapper({
+  date: 'Transaction Date',
+  amount: 'Value',
+  payee: 'Merchant'
+});
+
+// With custom transform functions
+const mapper = utils.createFieldMapper({
+  date: 'Date',
+  amount: (row) => {
+    const debit = parseFloat(row['Debit'] as string) || 0;
+    const credit = parseFloat(row['Credit'] as string) || 0;
+    return String(credit - debit);
+  },
+  payee: 'Merchant'
+});
+
+const transactions = deserialisers.csv(csv, { map: mapper });
+```
 
 ## Date Handling
 
