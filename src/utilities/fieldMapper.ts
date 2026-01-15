@@ -8,6 +8,32 @@ import {
 import { transactionKeys } from '../types/common';
 
 /**
+ * Default map function that extracts transaction fields from an object.
+ *
+ * Looks for fields named 'date', 'amount', 'payee', 'description', and 'category'
+ * and returns them as a TransactionLike object. Handles both string and number values
+ * for the amount field.
+ *
+ * @param object - The source object to extract fields from.
+ * @returns A TransactionLike object with extracted fields, or null if input is invalid.
+ */
+export function defaultFieldMapper(
+  object: Record<string, unknown>
+): TransactionLike | null {
+  const transaction: TransactionLike = {};
+  if (typeof object !== 'object' || object === null) return null;
+  transactionKeys.forEach((key) => {
+    const value = object[key];
+    if (typeof value === 'string') {
+      transaction[key as keyof TransactionLike] = value;
+    } else if (key === 'amount' && typeof value === 'number') {
+      transaction[key as keyof TransactionLike] = String(value);
+    }
+  });
+  return transaction;
+}
+
+/**
  * Creates a map function compatible with the CSV deserializer's map option.
  *
  * Takes a simple field mapping configuration and returns a function that transforms

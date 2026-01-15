@@ -1,0 +1,28 @@
+feat: add inspect, guess, and field mapper utilities
+
+Add a new `utils` namespace with three utilities for working with unknown
+bank export data:
+
+- `utils.inspect(input)` - Parse CSV/JSON and return a uniform report with
+  field names, sample records, and record count. Optionally attempts to
+  parse dates and numbers in the sample.
+
+- `utils.guess(fields, options)` - Use heuristics to guess field mappings
+  from header names. Matches common patterns like "Transaction Date",
+  "Amount", "Merchant", etc. with high/medium confidence levels.
+  Optionally boosts confidence based on sample value analysis.
+
+- `utils.createFieldMapper(mapping)` - Create a map function compatible
+  with the CSV deserializer from a simple field mapping configuration.
+  Supports both string mappings and custom transform functions.
+
+These utilities enable a workflow for handling unknown bank exports:
+1. Inspect the data to see its structure
+2. Guess field mappings from headers
+3. Review/adjust the mapping
+4. Create a mapper and parse
+
+Also adds shared parsing utilities in src/utilities/parse.ts for
+CSV/JSON parsing that can be reused by deserializers.
+
+Includes comprehensive tests and documentation updates.

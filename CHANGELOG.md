@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file. See [standa
 
   - `utils.guess(fields, options?)` - Use heuristics to guess field mappings from header names. Matches common patterns like "Transaction Date", "Amount", "Merchant", etc. with high/medium confidence levels. Optionally boosts confidence based on sample value analysis.
 
-  - `utils.createFieldMapper(mapping)` - Create a map function compatible with the CSV deserializer from a simple field mapping configuration. Supports both string mappings and custom transform functions for complex cases like separate debit/credit columns.
+  - `utils.createFieldMapper(mapping)` - Create a map function compatible with the CSV/JSON deserializers from a simple field mapping configuration. Supports both string mappings and custom transform functions for complex cases like separate debit/credit columns.
 
   These utilities enable a streamlined workflow for handling unknown bank exports:
   1. Inspect the data to understand its structure
@@ -29,6 +29,20 @@ All notable changes to this project will be documented in this file. See [standa
   const guessed = utils.guess(report.fields, { sample: report.sample });
   const mapper = utils.createFieldMapper(guessed.mapping);
   const transactions = deserialisers.csv(bankExportCsv, { map: mapper });
+  ```
+
+* **json:** add `map` option to JSON deserializer
+
+  The JSON deserializer now supports the same `map` option as the CSV deserializer, allowing custom field mapping for non-standard JSON formats:
+
+  ```typescript
+  const transactions = deserialisers.json(jsonData, {
+    map: (row) => ({
+      date: row.transactionDate,
+      amount: row.value,
+      payee: row.merchant
+    })
+  });
   ```
 
 ## [2.2.1](https://github.com/andrewbridge/transaction-serde/compare/v2.2.0...v2.2.1)

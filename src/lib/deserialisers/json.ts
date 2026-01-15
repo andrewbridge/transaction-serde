@@ -1,13 +1,23 @@
-import { Deserialiser, Transaction } from 'transaction-serde';
+import { Deserialiser, Transaction, TransactionLike } from 'transaction-serde';
 
 import { parseDateStrings } from '../../utilities/dates';
+import { defaultFieldMapper } from '../../utilities/fieldMapper';
+import { mergeOptions } from '../../utilities/options';
+
+type DeserialiserOptions = {
+  map: (object: Record<string, unknown>) => TransactionLike | null;
+};
+
+const defaultOptions: DeserialiserOptions = {
+  map: defaultFieldMapper,
+};
 
 /**
  * Deserialises a JSON string to an array of transactions.
  *
  * Parses a JSON string containing an array of transaction objects. Dates are automatically
  * parsed from various string formats. Transactions missing required fields (date, amount)
- * are skipped.
+ * are skipped. A custom mapping function can be provided to handle non-standard JSON formats.
  *
  * @example
  * ```ts
@@ -18,13 +28,29 @@ import { parseDateStrings } from '../../utilities/dates';
  * // => [{ date: Date, amount: 100, payee: 'Store' }]
  * ```
  *
+ * @example
+ * ```ts
+ * // Custom mapping for non-standard JSON fields
+ * const json = '[{"transactionDate":"2024-01-15","value":100,"merchant":"Store"}]';
+ * const transactions = deserialisers.json(json, {
+ *   map: (row) => ({
+ *     date: row.transactionDate,
+ *     amount: row.value,
+ *     payee: row.merchant
+ *   })
+ * });
+ * ```
+ *
  * @param input - A JSON string containing an array of transaction objects.
+ * @param options - Optional configuration for parsing.
+ * @param options.map - Custom function to map JSON objects to transaction-like objects.
  * @returns An array of parsed transaction objects.
  * @throws {Error} If the input is not valid JSON.
  * @throws {Error} If the input is not an array.
  * @throws {TypeError} If an amount cannot be parsed as a number.
  */
-const handler: Deserialiser = (input: string) => {
+const handler: Deserialiser<DeserialiserOptions> = (input, options) => {
+  const { map } = mergeOptions(defaultOptions, options);
   let objects: { [key: string]: unknown }[] = [];
   try {
     objects = JSON.parse(input);
@@ -36,28 +62,26 @@ const handler: Deserialiser = (input: string) => {
   }
   const transactions: Transaction[] = [];
   const dates: { date: string; transaction: Transaction }[] = [];
-  while (objects.length > 0) {
-    const object = objects.shift();
-    if (!object) continue;
+  objects.forEach((object) => {
+    const transactionLike = map(object as Record<string, unknown>);
+    if (transactionLike === null) return;
     if (
-      typeof object.date !== 'string' ||
-      object.date.length === 0 ||
-      !['number', 'string'].includes(typeof object.amount) ||
-      String(object.amount).length === 0
+      typeof transactionLike.date !== 'string' ||
+      transactionLike.date.length === 0 ||
+      typeof transactionLike.amount !== 'string' ||
+      transactionLike.amount.length === 0
     )
-      continue;
+      return;
     const transaction: Transaction = {};
-    const dateString = object.date;
-    Object.keys(object).forEach((key) => {
+    const dateString = transactionLike.date;
+    Object.keys(transactionLike).forEach((key) => {
       switch (key) {
         case 'date':
           dates.push({ date: dateString, transaction });
           break;
         case 'amount':
-          if (typeof object.amount === 'number') {
-            transaction.amount = object.amount;
-          } else if (typeof object.amount === 'string') {
-            transaction.amount = parseFloat(object.amount);
+          if (typeof transactionLike.amount === 'string') {
+            transaction.amount = parseFloat(transactionLike.amount);
             if (!Number.isFinite(transaction.amount)) {
               throw new TypeError('Could not parse amount');
             }
@@ -66,14 +90,14 @@ const handler: Deserialiser = (input: string) => {
         case 'payee':
         case 'description':
         case 'category':
-          if (typeof object[key] === 'string') {
-            transaction[key] = object[key] as string;
+          if (typeof transactionLike[key] === 'string') {
+            transaction[key] = transactionLike[key] as string;
           }
           break;
       }
     });
     transactions.push(transaction);
-  }
+  });
   const parsedDates = parseDateStrings(dates.map((d) => d.date));
   parsedDates.forEach((date, i) => (dates[i].transaction.date = date));
   return transactions;

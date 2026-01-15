@@ -149,3 +149,62 @@ test('json deserialiser ignores invalid optional transaction data', (t) => {
     },
   ]);
 });
+
+const CUSTOM_FIELDS_DATA = `[
+    {
+        "transactionDate": "2024-04-01",
+        "value": 134.99,
+        "merchant": "Acme",
+        "notes": "Acme Salary April"
+    },
+    {
+        "transactionDate": "2024-04-02",
+        "value": -34.99,
+        "merchant": "Internet",
+        "notes": "INET12345678-0"
+    }
+]`;
+
+test('json deserialiser with custom map function', (t) => {
+  const result = json(CUSTOM_FIELDS_DATA, {
+    map: (row) => ({
+      date: row.transactionDate as string,
+      amount: String(row.value),
+      payee: row.merchant as string,
+      description: row.notes as string,
+    }),
+  });
+  t.deepEqual(result, [
+    {
+      date: new UTCDateMini(2024, 3, 1),
+      amount: 134.99,
+      payee: 'Acme',
+      description: 'Acme Salary April',
+    },
+    {
+      date: new UTCDateMini(2024, 3, 2),
+      amount: -34.99,
+      payee: 'Internet',
+      description: 'INET12345678-0',
+    },
+  ]);
+});
+
+test('json deserialiser map function can filter records', (t) => {
+  const result = json(DATA, {
+    map: (row) => {
+      // Only include transactions with negative amounts
+      if (typeof row.amount === 'number' && row.amount >= 0) {
+        return null;
+      }
+      return {
+        date: row.date as string,
+        amount: String(row.amount),
+        payee: row.payee as string,
+      };
+    },
+  }) as Transaction[];
+  t.is(result.length, 2);
+  t.is(result[0].payee, 'Internet');
+  t.is(result[1].payee, 'Energy');
+});

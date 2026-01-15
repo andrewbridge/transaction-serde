@@ -1,8 +1,8 @@
 import { parse } from 'papaparse';
 import { Deserialiser, Transaction, TransactionLike } from 'transaction-serde';
 
-import { transactionKeys } from '../../types/common';
 import { parseDateStrings } from '../../utilities/dates';
+import { defaultFieldMapper } from '../../utilities/fieldMapper';
 import { mergeOptions } from '../../utilities/options';
 
 type DeserialiserOptions = {
@@ -13,17 +13,7 @@ type DeserialiserOptions = {
 
 const defaultOptions: DeserialiserOptions = {
   headers: true,
-  map: (object) => {
-    const transaction: TransactionLike = {};
-    if (typeof object !== 'object' || object === null) return null;
-    transactionKeys.forEach((key) => {
-      const value = object[key];
-      if (typeof value === 'string') {
-        transaction[key] = value;
-      }
-    });
-    return transaction;
-  },
+  map: defaultFieldMapper,
 };
 
 /**
