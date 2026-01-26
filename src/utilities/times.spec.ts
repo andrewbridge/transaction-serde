@@ -1,0 +1,230 @@
+import test from 'ava';
+
+import { parseTimeStrings } from './times';
+
+const TIMES_24H_COLON = [
+  '00:00:00',
+  '01:30:00',
+  '09:15:30',
+  '12:00:00',
+  '14:30:00',
+  '18:45:15',
+  '23:59:59',
+];
+
+const TIMES_24H_NO_SECONDS = [
+  '00:00',
+  '01:30',
+  '09:15',
+  '12:00',
+  '14:30',
+  '18:45',
+  '23:59',
+];
+
+const TIMES_24H_NO_SEP = [
+  '000000',
+  '013000',
+  '091530',
+  '120000',
+  '143000',
+  '184515',
+  '235959',
+];
+
+const TIMES_24H_NO_SEP_NO_SECONDS = [
+  '0000',
+  '0130',
+  '0915',
+  '1200',
+  '1430',
+  '1845',
+  '2359',
+];
+
+const TIMES_24H_DOT = [
+  '00.00.00',
+  '01.30.00',
+  '09.15.30',
+  '12.00.00',
+  '14.30.00',
+  '18.45.15',
+  '23.59.59',
+];
+
+const TIMES_12H_UPPER = [
+  '12:00:00 AM',
+  '01:30:00 AM',
+  '09:15:30 AM',
+  '12:00:00 PM',
+  '02:30:00 PM',
+  '06:45:15 PM',
+  '11:59:59 PM',
+];
+
+const TIMES_12H_LOWER = [
+  '12:00:00 am',
+  '01:30:00 am',
+  '09:15:30 am',
+  '12:00:00 pm',
+  '02:30:00 pm',
+  '06:45:15 pm',
+  '11:59:59 pm',
+];
+
+const TIMES_12H_NO_SECONDS = [
+  '12:00 AM',
+  '01:30 AM',
+  '09:15 AM',
+  '12:00 PM',
+  '02:30 PM',
+  '06:45 PM',
+  '11:59 PM',
+];
+
+const TIMES_12H_NO_SPACE = [
+  '12:00:00AM',
+  '01:30:00AM',
+  '09:15:30AM',
+  '12:00:00PM',
+  '02:30:00PM',
+  '06:45:15PM',
+  '11:59:59PM',
+];
+
+const TIMES_12H_SINGLE_DIGIT = [
+  '1:30 AM',
+  '2:45 AM',
+  '9:15 AM',
+  '1:00 PM',
+  '2:30 PM',
+  '6:45 PM',
+  '11:59 PM',
+];
+
+const EXPECTED_HOURS = [0, 1, 9, 12, 14, 18, 23];
+const EXPECTED_MINUTES = [0, 30, 15, 0, 30, 45, 59];
+const EXPECTED_SECONDS_FULL = [0, 0, 30, 0, 0, 15, 59];
+
+const EXPECTED_12H_HOURS = [0, 1, 9, 12, 14, 18, 23];
+const EXPECTED_12H_MINUTES = [0, 30, 15, 0, 30, 45, 59];
+const EXPECTED_12H_SECONDS = [0, 0, 30, 0, 0, 15, 59];
+
+const EXPECTED_SINGLE_DIGIT_HOURS = [1, 2, 9, 13, 14, 18, 23];
+const EXPECTED_SINGLE_DIGIT_MINUTES = [30, 45, 15, 0, 30, 45, 59];
+
+const VALID_STRINGS = [
+  {
+    times: TIMES_24H_COLON,
+    hours: EXPECTED_HOURS,
+    minutes: EXPECTED_MINUTES,
+    seconds: EXPECTED_SECONDS_FULL,
+  },
+  {
+    times: TIMES_24H_NO_SECONDS,
+    hours: EXPECTED_HOURS,
+    minutes: EXPECTED_MINUTES,
+    seconds: [0, 0, 0, 0, 0, 0, 0],
+  },
+  {
+    times: TIMES_24H_NO_SEP,
+    hours: EXPECTED_HOURS,
+    minutes: EXPECTED_MINUTES,
+    seconds: EXPECTED_SECONDS_FULL,
+  },
+  {
+    times: TIMES_24H_NO_SEP_NO_SECONDS,
+    hours: EXPECTED_HOURS,
+    minutes: EXPECTED_MINUTES,
+    seconds: [0, 0, 0, 0, 0, 0, 0],
+  },
+  {
+    times: TIMES_24H_DOT,
+    hours: EXPECTED_HOURS,
+    minutes: EXPECTED_MINUTES,
+    seconds: EXPECTED_SECONDS_FULL,
+  },
+  {
+    times: TIMES_12H_UPPER,
+    hours: EXPECTED_12H_HOURS,
+    minutes: EXPECTED_12H_MINUTES,
+    seconds: EXPECTED_12H_SECONDS,
+  },
+  {
+    times: TIMES_12H_LOWER,
+    hours: EXPECTED_12H_HOURS,
+    minutes: EXPECTED_12H_MINUTES,
+    seconds: EXPECTED_12H_SECONDS,
+  },
+  {
+    times: TIMES_12H_NO_SECONDS,
+    hours: EXPECTED_12H_HOURS,
+    minutes: EXPECTED_12H_MINUTES,
+    seconds: [0, 0, 0, 0, 0, 0, 0],
+  },
+  {
+    times: TIMES_12H_NO_SPACE,
+    hours: EXPECTED_12H_HOURS,
+    minutes: EXPECTED_12H_MINUTES,
+    seconds: EXPECTED_12H_SECONDS,
+  },
+  {
+    times: TIMES_12H_SINGLE_DIGIT,
+    hours: EXPECTED_SINGLE_DIGIT_HOURS,
+    minutes: EXPECTED_SINGLE_DIGIT_MINUTES,
+    seconds: [0, 0, 0, 0, 0, 0, 0],
+  },
+];
+
+const INVALID_STRINGS = [
+  '25:00:00',
+  '12:60:00',
+  '12:00:60',
+  'noon',
+  '1pm',
+  'morning',
+];
+
+test('parsing 24-hour times with colons and seconds', (t) => {
+  const result = parseTimeStrings(TIMES_24H_COLON);
+  t.is(result.length, 7);
+  t.deepEqual(result[0], { hours: 0, minutes: 0, seconds: 0 });
+  t.deepEqual(result[6], { hours: 23, minutes: 59, seconds: 59 });
+});
+
+test('parsing various time formats', (t) => {
+  VALID_STRINGS.forEach(({ times, hours, minutes, seconds }) => {
+    const result = parseTimeStrings(times);
+    t.log(times[0], result[0]);
+    t.is(result.length, times.length);
+    result.forEach((parsed, i) => {
+      t.is(
+        parsed.hours,
+        hours[i],
+        `hours mismatch at index ${i} for ${times[i]}`
+      );
+      t.is(
+        parsed.minutes,
+        minutes[i],
+        `minutes mismatch at index ${i} for ${times[i]}`
+      );
+      t.is(
+        parsed.seconds,
+        seconds[i],
+        `seconds mismatch at index ${i} for ${times[i]}`
+      );
+    });
+  });
+});
+
+test('throws on invalid time strings', (t) => {
+  t.throws(() => parseTimeStrings(INVALID_STRINGS));
+});
+
+test('custom format support', (t) => {
+  const times = ['14h30m', '09h15m'];
+  const result = parseTimeStrings(times, ["HH'h'mm'm'"]);
+  t.is(result.length, 2);
+  t.deepEqual(result[0], { hours: 14, minutes: 30, seconds: 0 });
+  t.deepEqual(result[1], { hours: 9, minutes: 15, seconds: 0 });
+});
