@@ -20,7 +20,8 @@ declare module 'transaction-serde' {
    *   amount: -50.00,
    *   payee: 'Coffee Shop',
    *   description: 'Morning coffee',
-   *   category: 'Food & Drink'
+   *   category: 'Food & Drink',
+   *   metadata: { originalId: 'TXN-12345', source: 'bank-api' }
    * };
    * ```
    */
@@ -35,16 +36,21 @@ declare module 'transaction-serde' {
     description: string;
     /** The category or classification of the transaction */
     category: string;
+    /** Additional data that persists through the library without direct mapping */
+    metadata: Record<string, unknown>;
   }>;
 
   /**
    * A transaction-like object where all values are strings.
    *
    * Used as an intermediate representation during deserialisation before
-   * values are parsed into their proper types.
+   * values are parsed into their proper types. Metadata can be either a string
+   * (JSON) or an object that will be passed through directly.
    */
   type TransactionLike = {
-    [K in keyof Transaction]: string;
+    [K in keyof Omit<Transaction, 'metadata'>]: string;
+  } & {
+    metadata?: string | Record<string, unknown>;
   };
 
   /**

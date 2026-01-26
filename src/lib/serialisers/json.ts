@@ -21,7 +21,9 @@ import { Serialiser } from 'transaction-serde';
  * @returns A JSON string representation of the transactions.
  */
 const handler: Serialiser = (input) => {
-  const output: { [key: string]: string | number }[] = [];
+  const output: {
+    [key: string]: string | number | Record<string, unknown>;
+  }[] = [];
   for (const transaction of input) {
     const { date, ...rest } = transaction;
     if (!(date instanceof Date) || Number.isNaN(date.getTime())) continue;

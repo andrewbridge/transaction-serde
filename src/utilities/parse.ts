@@ -126,3 +126,28 @@ export function tryParseNumber(value: string): number | null {
 
   return parsed;
 }
+
+/**
+ * Parses metadata from a string or object value.
+ *
+ * Accepts either a JSON string (which will be parsed) or an object (which will
+ * be passed through). Returns undefined if the value is invalid or unparseable.
+ *
+ * @param value - The metadata value to parse (string or object).
+ * @returns A Record object if valid, undefined otherwise.
+ */
+export function parseMetadata(
+  value: string | Record<string, unknown> | undefined
+): Record<string, unknown> | undefined {
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return undefined;
+    }
+  }
+  if (typeof value === 'object' && value !== null) {
+    return value;
+  }
+  return undefined;
+}

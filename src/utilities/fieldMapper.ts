@@ -28,6 +28,12 @@ export function defaultFieldMapper(
       transaction[key as keyof TransactionLike] = value;
     } else if (key === 'amount' && typeof value === 'number') {
       transaction[key as keyof TransactionLike] = String(value);
+    } else if (
+      key === 'metadata' &&
+      typeof value === 'object' &&
+      value !== null
+    ) {
+      transaction.metadata = value as Record<string, unknown>;
     }
   });
   return transaction;

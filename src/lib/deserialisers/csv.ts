@@ -4,6 +4,7 @@ import { Deserialiser, Transaction, TransactionLike } from 'transaction-serde';
 import { parseDateStrings } from '../../utilities/dates';
 import { defaultFieldMapper } from '../../utilities/fieldMapper';
 import { mergeOptions } from '../../utilities/options';
+import { parseMetadata } from '../../utilities/parse';
 
 type DeserialiserOptions = {
   headers: boolean;
@@ -104,6 +105,13 @@ const handler: Deserialiser<DeserialiserOptions> = (input, options) => {
             transaction[key] = transactionLike[key] as string;
           }
           break;
+        case 'metadata': {
+          const metadata = parseMetadata(transactionLike.metadata);
+          if (metadata !== undefined) {
+            transaction.metadata = metadata;
+          }
+          break;
+        }
       }
     });
     transactions.push(transaction);

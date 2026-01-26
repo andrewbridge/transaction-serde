@@ -14,7 +14,8 @@ declare module 'transaction-serde' {
     | 'amount'
     | 'payee'
     | 'description'
-    | 'category';
+    | 'category'
+    | 'metadata';
 
   /**
    * Result of inspecting a data source.

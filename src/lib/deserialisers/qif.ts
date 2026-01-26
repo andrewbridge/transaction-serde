@@ -61,8 +61,11 @@ const handler: Deserialiser = (input: string) => {
       case 'amount':
         transaction.amount = parseFloat(fieldValue);
         break;
-      default:
+      case 'payee':
+      case 'description':
+      case 'category':
         transaction[fieldName] = fieldValue;
+        break;
     }
   }
   const parsedDates = parseDateStrings(dates.map((d) => d.date));

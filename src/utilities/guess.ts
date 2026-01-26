@@ -81,6 +81,7 @@ const fieldPatterns: Record<
     { pattern: /^tag$/i, confidence: 'medium' },
     { pattern: /^label$/i, confidence: 'medium' },
   ],
+  metadata: [], // We do not guess metadata fields, it's an escape hatch for users to retain non-critical data
 };
 
 /**

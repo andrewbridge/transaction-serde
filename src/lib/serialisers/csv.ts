@@ -25,11 +25,19 @@ import { transactionKeys } from '../../types/common';
  * @returns A CSV string representation of the transactions with headers.
  */
 const handler: Serialiser = (input) => {
-  const output: { [key: string]: string | number }[] = [];
+  const output: { [key: string]: string | number | Record<string, unknown> }[] =
+    [];
   for (const transaction of input) {
-    const { date, ...rest } = transaction;
+    const { date, metadata, ...rest } = transaction;
     if (!(date instanceof Date) || Number.isNaN(date.getTime())) continue;
-    output.push({ date: date.toISOString().substring(0, 10), ...rest });
+    const row: { [key: string]: string | number | Record<string, unknown> } = {
+      date: date.toISOString().substring(0, 10),
+      ...rest,
+    };
+    if (metadata !== undefined) {
+      row.metadata = JSON.stringify(metadata);
+    }
+    output.push(row);
   }
   const quoteColumns = transactionKeys.map((key) =>
     key === 'amount' ? false : true

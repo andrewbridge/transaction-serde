@@ -208,3 +208,65 @@ test('json deserialiser map function can filter records', (t) => {
   t.is(result[0].payee, 'Internet');
   t.is(result[1].payee, 'Energy');
 });
+
+const DATA_WITH_METADATA_OBJECT = `[
+    {
+        "date": "2024-04-01",
+        "amount": 134.99,
+        "payee": "Acme",
+        "metadata": { "source": "bank-api", "id": 123 }
+    }
+]`;
+
+const DATA_WITH_METADATA_STRING = `[
+    {
+        "date": "2024-04-01",
+        "amount": 134.99,
+        "payee": "Acme",
+        "metadata": "{\\"source\\": \\"bank-api\\", \\"id\\": 123}"
+    }
+]`;
+
+const DATA_WITH_INVALID_METADATA = `[
+    {
+        "date": "2024-04-01",
+        "amount": 134.99,
+        "payee": "Acme",
+        "metadata": "not valid json"
+    }
+]`;
+
+test('json deserialiser handles metadata as object', (t) => {
+  const result = json(DATA_WITH_METADATA_OBJECT);
+  t.deepEqual(result, [
+    {
+      date: new UTCDateMini(2024, 3, 1),
+      amount: 134.99,
+      payee: 'Acme',
+      metadata: { source: 'bank-api', id: 123 },
+    },
+  ]);
+});
+
+test('json deserialiser parses metadata from JSON string', (t) => {
+  const result = json(DATA_WITH_METADATA_STRING);
+  t.deepEqual(result, [
+    {
+      date: new UTCDateMini(2024, 3, 1),
+      amount: 134.99,
+      payee: 'Acme',
+      metadata: { source: 'bank-api', id: 123 },
+    },
+  ]);
+});
+
+test('json deserialiser ignores invalid metadata JSON string', (t) => {
+  const result = json(DATA_WITH_INVALID_METADATA);
+  t.deepEqual(result, [
+    {
+      date: new UTCDateMini(2024, 3, 1),
+      amount: 134.99,
+      payee: 'Acme',
+    },
+  ]);
+});

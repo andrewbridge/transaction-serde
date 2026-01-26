@@ -10,4 +10,5 @@ export const transactionKeys = [
   'payee',
   'description',
   'category',
+  'metadata',
 ] as const;

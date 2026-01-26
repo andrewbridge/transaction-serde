@@ -96,3 +96,54 @@ test('csv deserialiser should fail on invalid amount data', (t) => {
 test('csv deserialiser throws when given empty rows', (t) => {
   t.throws(() => csv(EMPTY_INPUT));
 });
+
+const DATA_WITH_METADATA = `"date","amount","payee","metadata"
+"2024-04-01",134.99,"Acme","{""source"": ""bank-api"", ""id"": 123}"`;
+
+const DATA_WITH_INVALID_METADATA = `"date","amount","payee","metadata"
+"2024-04-01",134.99,"Acme","not valid json"`;
+
+test('csv deserialiser parses metadata from JSON string', (t) => {
+  const result = csv(DATA_WITH_METADATA);
+  t.deepEqual(result, [
+    {
+      date: new UTCDateMini(2024, 3, 1),
+      amount: 134.99,
+      payee: 'Acme',
+      metadata: { source: 'bank-api', id: 123 },
+    },
+  ]);
+});
+
+test('csv deserialiser ignores invalid metadata JSON', (t) => {
+  const result = csv(DATA_WITH_INVALID_METADATA);
+  t.deepEqual(result, [
+    {
+      date: new UTCDateMini(2024, 3, 1),
+      amount: 134.99,
+      payee: 'Acme',
+    },
+  ]);
+});
+
+test('csv deserialiser handles metadata as object from custom mapper', (t) => {
+  const data = `"date","amount","payee","extra"
+"2024-04-01",134.99,"Acme","some-value"`;
+  const result = csv(data, {
+    headers: true,
+    map: (row) => ({
+      date: row.date as string,
+      amount: String(row.amount),
+      payee: row.payee as string,
+      metadata: { extra: row.extra },
+    }),
+  });
+  t.deepEqual(result, [
+    {
+      date: new UTCDateMini(2024, 3, 1),
+      amount: 134.99,
+      payee: 'Acme',
+      metadata: { extra: 'some-value' },
+    },
+  ]);
+});
