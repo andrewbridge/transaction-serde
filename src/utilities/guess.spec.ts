@@ -130,6 +130,22 @@ test('guess boosts confidence when sample values look like amounts', (t) => {
   t.is(result.guesses[0].confidence, 'high');
 });
 
+test('guess does not boost confidence when sample values are empty', (t) => {
+  const result = guess(['When'], {
+    sample: [{ When: '' }, { When: '' }],
+  });
+  t.is(result.mapping.date, 'When');
+  t.is(result.guesses[0].confidence, 'medium');
+});
+
+test('guess does not boost confidence when sample values are not dates or amounts', (t) => {
+  const result = guess(['When'], {
+    sample: [{ When: 'hello' }, { When: 'world' }],
+  });
+  t.is(result.mapping.date, 'When');
+  t.is(result.guesses[0].confidence, 'medium');
+});
+
 // Full workflow scenarios
 test('guess handles typical bank export headers', (t) => {
   const result = guess([

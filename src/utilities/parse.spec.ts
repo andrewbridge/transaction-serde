@@ -1,6 +1,12 @@
 import test from 'ava';
 
-import { detectFormat, parseCsv, parseJson, tryParseNumber } from './parse';
+import {
+  detectFormat,
+  parseCsv,
+  parseJson,
+  parseMetadata,
+  tryParseNumber,
+} from './parse';
 
 // detectFormat tests
 test('detectFormat detects JSON array', (t) => {
@@ -112,10 +118,33 @@ test('tryParseNumber returns null for non-numeric strings', (t) => {
   t.is(tryParseNumber('Coffee Shop'), null);
 });
 
+test('tryParseNumber returns null for Infinity', (t) => {
+  t.is(tryParseNumber('Infinity'), null);
+  t.is(tryParseNumber('-Infinity'), null);
+});
+
 test('tryParseNumber returns null for empty string', (t) => {
   t.is(tryParseNumber(''), null);
 });
 
 test('tryParseNumber handles whitespace', (t) => {
   t.is(tryParseNumber('  100  '), 100);
+});
+
+// parseMetadata tests
+test('parseMetadata parses valid JSON string', (t) => {
+  t.deepEqual(parseMetadata('{"key": "value"}'), { key: 'value' });
+});
+
+test('parseMetadata passes through object directly', (t) => {
+  const obj = { key: 'value', nested: { a: 1 } };
+  t.deepEqual(parseMetadata(obj), obj);
+});
+
+test('parseMetadata returns undefined for invalid JSON string', (t) => {
+  t.is(parseMetadata('not valid json'), undefined);
+});
+
+test('parseMetadata returns undefined for undefined input', (t) => {
+  t.is(parseMetadata(undefined), undefined);
 });

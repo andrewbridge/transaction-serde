@@ -68,3 +68,19 @@ test('csv serialiser will ignore items with invalid dates', async (t) => {
       '"2024-04-01",134.99,"Acme","Acme Salary April","Income"'
   );
 });
+
+test('csv serialiser includes metadata as JSON string', async (t) => {
+  const dataWithMetadata = [
+    {
+      date: new UTCDateMini(2024, 3, 1),
+      amount: 100,
+      payee: 'Store',
+      metadata: { source: 'bank-api', id: 123 },
+    },
+  ];
+  t.is(
+    await csv(dataWithMetadata),
+    '"date",amount,"payee","metadata"\n' +
+      '"2024-04-01",100,"Store","{""source"":""bank-api"",""id"":123}"'
+  );
+});
