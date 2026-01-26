@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.5.0](https://github.com/andrewbridge/transaction-serde/compare/v2.4.0...v2.5.0) (2026-01-26)
+
+
+### Features
+
+* add time parsing utility ([e6706b5](https://github.com/andrewbridge/transaction-serde/commit/e6706b53e87261e30c3a20d6ab19b6f6a387e761))
+
 ## [2.4.0](https://github.com/andrewbridge/transaction-serde/compare/v2.3.0...v2.4.0) (2026-01-26)
 
 
