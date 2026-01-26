@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.4.0](https://github.com/andrewbridge/transaction-serde/compare/v2.3.0...v2.4.0) (2026-01-26)
+
+
+### Features
+
+* add optional metadata field to Transaction type ([c24dbf9](https://github.com/andrewbridge/transaction-serde/commit/c24dbf9995df741f9e1fe118969580d9a193dc99))
+
 ## [2.3.0](https://github.com/andrewbridge/transaction-serde/compare/v2.2.1...v2.3.0) (2026-01-15)
 
 
