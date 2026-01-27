@@ -11,6 +11,7 @@ declare module 'transaction-serde' {
    */
   type TransactionKey =
     | 'date'
+    | 'time'
     | 'amount'
     | 'payee'
     | 'description'

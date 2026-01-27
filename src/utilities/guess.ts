@@ -81,6 +81,13 @@ const fieldPatterns: Record<
     { pattern: /^tag$/i, confidence: 'medium' },
     { pattern: /^label$/i, confidence: 'medium' },
   ],
+  time: [
+    { pattern: /^time$/i, confidence: 'high' },
+    { pattern: /^transaction[_\s-]?time$/i, confidence: 'high' },
+    { pattern: /^trans[_\s-]?time$/i, confidence: 'high' },
+    { pattern: /time$/i, confidence: 'medium' },
+    { pattern: /^clock$/i, confidence: 'medium' },
+  ],
   metadata: [], // We do not guess metadata fields, it's an escape hatch for users to retain non-critical data
 };
 
@@ -113,6 +120,15 @@ const datePatterns = [
 ];
 
 /**
+ * Time patterns for value-based heuristics.
+ */
+const timePatterns = [
+  /^\d{1,2}:\d{2}(:\d{2})?$/, // HH:mm or HH:mm:ss
+  /^\d{1,2}:\d{2}(:\d{2})?\s*[AaPp][Mm]$/, // 12-hour with AM/PM
+  /^\d{1,2}\.\d{2}(\.\d{2})?$/, // HH.mm or HH.mm.ss
+];
+
+/**
  * Value-based heuristics to improve confidence or suggest type.
  */
 function analyzeValues(values: unknown[]): {
@@ -133,6 +149,14 @@ function analyzeValues(values: unknown[]): {
   );
   if (looksLikeDates) {
     return { suggestedType: 'date', boost: true };
+  }
+
+  // Check for time-like values
+  const looksLikeTimes = stringValues.every((v) =>
+    timePatterns.some((p) => p.test(v))
+  );
+  if (looksLikeTimes) {
+    return { suggestedType: 'time', boost: true };
   }
 
   // Check for numeric/amount-like values (currency symbols, numbers with decimals)

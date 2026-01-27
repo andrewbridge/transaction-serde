@@ -4,6 +4,7 @@ import { parseDateStrings } from '../../utilities/dates';
 import { defaultFieldMapper } from '../../utilities/fieldMapper';
 import { mergeOptions } from '../../utilities/options';
 import { parseMetadata } from '../../utilities/parse';
+import { parseTimeStrings } from '../../utilities/times';
 
 type DeserialiserOptions = {
   map: (object: Record<string, unknown>) => TransactionLike | null;
@@ -63,6 +64,7 @@ const handler: Deserialiser<DeserialiserOptions> = (input, options) => {
   }
   const transactions: Transaction[] = [];
   const dates: { date: string; transaction: Transaction }[] = [];
+  const times: { time: string; transaction: Transaction }[] = [];
   objects.forEach((object) => {
     const transactionLike = map(object as Record<string, unknown>);
     if (transactionLike === null) return;
@@ -79,6 +81,14 @@ const handler: Deserialiser<DeserialiserOptions> = (input, options) => {
       switch (key) {
         case 'date':
           dates.push({ date: dateString, transaction });
+          break;
+        case 'time':
+          if (
+            typeof transactionLike.time === 'string' &&
+            transactionLike.time.length > 0
+          ) {
+            times.push({ time: transactionLike.time, transaction });
+          }
           break;
         case 'amount':
           if (typeof transactionLike.amount === 'string') {
@@ -108,6 +118,10 @@ const handler: Deserialiser<DeserialiserOptions> = (input, options) => {
   });
   const parsedDates = parseDateStrings(dates.map((d) => d.date));
   parsedDates.forEach((date, i) => (dates[i].transaction.date = date));
+  if (times.length > 0) {
+    const parsedTimes = parseTimeStrings(times.map((t) => t.time));
+    parsedTimes.forEach((time, i) => (times[i].transaction.time = time));
+  }
   return transactions;
 };
 export default handler;

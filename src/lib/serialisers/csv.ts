@@ -1,7 +1,7 @@
 import { unparse } from 'papaparse';
 import { Serialiser } from 'transaction-serde';
 
-import { transactionKeys } from '../../types/common';
+import { formatTimeString } from '../../utilities/times';
 
 /**
  * Serialises an array of transactions to CSV format.
@@ -25,26 +25,32 @@ import { transactionKeys } from '../../types/common';
  * @returns A CSV string representation of the transactions with headers.
  */
 const handler: Serialiser = (input) => {
-  const output: { [key: string]: string | number | Record<string, unknown> }[] =
-    [];
+  const hasTimeData = input.some((t) => t.time !== undefined);
+  const output: { [key: string]: string | number }[] = [];
   for (const transaction of input) {
-    const { date, metadata, ...rest } = transaction;
+    const { date, time, metadata, ...rest } = transaction;
     if (!(date instanceof Date) || Number.isNaN(date.getTime())) continue;
-    const row: { [key: string]: string | number | Record<string, unknown> } = {
+    const row: { [key: string]: string | number } = {
       date: date.toISOString().substring(0, 10),
       ...rest,
     };
+    if (hasTimeData) {
+      row.time = time !== undefined ? formatTimeString(time) : '';
+    }
     if (metadata !== undefined) {
       row.metadata = JSON.stringify(metadata);
     }
     output.push(row);
   }
-  const quoteColumns = transactionKeys.map((key) =>
-    key === 'amount' ? false : true
-  );
+  // Get column order from all unique keys in output
+  const columns = [
+    ...new Set(output.flatMap((row) => Object.keys(row))),
+  ] as string[];
+  const quoteColumns = columns.map((key) => key !== 'amount');
   return unparse(output, {
     header: true,
     quotes: quoteColumns,
+    columns,
     newline: '\n',
   });
 };

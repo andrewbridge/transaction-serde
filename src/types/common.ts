@@ -6,6 +6,7 @@
  */
 export const transactionKeys = [
   'date',
+  'time',
   'amount',
   'payee',
   'description',

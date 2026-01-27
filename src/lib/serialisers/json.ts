@@ -1,5 +1,7 @@
 import { Serialiser } from 'transaction-serde';
 
+import { formatTimeString } from '../../utilities/times';
+
 /**
  * Serialises an array of transactions to JSON format.
  *
@@ -25,9 +27,16 @@ const handler: Serialiser = (input) => {
     [key: string]: string | number | Record<string, unknown>;
   }[] = [];
   for (const transaction of input) {
-    const { date, ...rest } = transaction;
+    const { date, time, ...rest } = transaction;
     if (!(date instanceof Date) || Number.isNaN(date.getTime())) continue;
-    output.push({ date: date.toISOString().substring(0, 10), ...rest });
+    const row: { [key: string]: string | number | Record<string, unknown> } = {
+      date: date.toISOString().substring(0, 10),
+      ...rest,
+    };
+    if (time !== undefined) {
+      row.time = formatTimeString(time);
+    }
+    output.push(row);
   }
   return JSON.stringify(output);
 };

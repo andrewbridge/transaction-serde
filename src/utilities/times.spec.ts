@@ -1,6 +1,11 @@
 import test from 'ava';
 
-import { parseTimeStrings } from './times';
+import {
+  formatTimeString,
+  parseTimeStrings,
+  toMs,
+  toTimeComponents,
+} from './times';
 
 const TIMES_24H_COLON = [
   '00:00:00',
@@ -188,8 +193,8 @@ const INVALID_STRINGS = [
 test('parsing 24-hour times with colons and seconds', (t) => {
   const result = parseTimeStrings(TIMES_24H_COLON);
   t.is(result.length, 7);
-  t.deepEqual(result[0], { hours: 0, minutes: 0, seconds: 0 });
-  t.deepEqual(result[6], { hours: 23, minutes: 59, seconds: 59 });
+  t.is(result[0], 0); // 00:00:00 = 0ms
+  t.is(result[6], toMs(23, 59, 59)); // 23:59:59
 });
 
 test('parsing various time formats', (t) => {
@@ -197,22 +202,9 @@ test('parsing various time formats', (t) => {
     const result = parseTimeStrings(times);
     t.log(times[0], result[0]);
     t.is(result.length, times.length);
-    result.forEach((parsed, i) => {
-      t.is(
-        parsed.hours,
-        hours[i],
-        `hours mismatch at index ${i} for ${times[i]}`
-      );
-      t.is(
-        parsed.minutes,
-        minutes[i],
-        `minutes mismatch at index ${i} for ${times[i]}`
-      );
-      t.is(
-        parsed.seconds,
-        seconds[i],
-        `seconds mismatch at index ${i} for ${times[i]}`
-      );
+    result.forEach((ms, i) => {
+      const expected = toMs(hours[i], minutes[i], seconds[i]);
+      t.is(ms, expected, `ms mismatch at index ${i} for ${times[i]}`);
     });
   });
 });
@@ -225,6 +217,72 @@ test('custom format support', (t) => {
   const times = ['14h30m', '09h15m'];
   const result = parseTimeStrings(times, ["HH'h'mm'm'"]);
   t.is(result.length, 2);
-  t.deepEqual(result[0], { hours: 14, minutes: 30, seconds: 0 });
-  t.deepEqual(result[1], { hours: 9, minutes: 15, seconds: 0 });
+  t.is(result[0], toMs(14, 30, 0));
+  t.is(result[1], toMs(9, 15, 0));
+});
+
+test('toTimeComponents converts ms to components', (t) => {
+  t.deepEqual(toTimeComponents(0), {
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    milliseconds: 0,
+  });
+  t.deepEqual(toTimeComponents(toMs(14, 30, 0)), {
+    hours: 14,
+    minutes: 30,
+    seconds: 0,
+    milliseconds: 0,
+  });
+  t.deepEqual(toTimeComponents(toMs(23, 59, 59) + 999), {
+    hours: 23,
+    minutes: 59,
+    seconds: 59,
+    milliseconds: 999,
+  });
+  t.deepEqual(toTimeComponents(43200000), {
+    hours: 12,
+    minutes: 0,
+    seconds: 0,
+    milliseconds: 0,
+  }); // noon
+});
+
+test('formatTimeString formats ms to HH:mm:ss', (t) => {
+  t.is(formatTimeString(0), '00:00:00');
+  t.is(formatTimeString(toMs(14, 30, 0)), '14:30:00');
+  t.is(formatTimeString(toMs(9, 5, 3)), '09:05:03');
+  t.is(formatTimeString(toMs(23, 59, 59)), '23:59:59');
+});
+
+test('toMs converts time components to ms since midnight', (t) => {
+  t.is(toMs(), 0);
+  t.is(toMs(0, 0, 0, 0), 0);
+  t.is(toMs(1), 3600000);
+  t.is(toMs(0, 1), 60000);
+  t.is(toMs(0, 0, 1), 1000);
+  t.is(toMs(0, 0, 0, 1), 1);
+  t.is(toMs(12), 43200000); // noon
+  t.is(toMs(14, 30), 52200000);
+  t.is(toMs(23, 59, 59), 86399000);
+  t.is(toMs(23, 59, 59, 999), 86399999);
+});
+
+test('toMs and toTimeComponents are inverses', (t) => {
+  const testCases = [
+    [0, 0, 0],
+    [12, 0, 0],
+    [14, 30, 0],
+    [23, 59, 59],
+    [9, 5, 3],
+  ] as const;
+
+  for (const [h, m, s] of testCases) {
+    const ms = toMs(h, m, s);
+    const components = toTimeComponents(ms);
+    t.is(components.hours, h);
+    t.is(components.minutes, m);
+    t.is(components.seconds, s);
+    t.is(components.milliseconds, 0);
+  }
 });

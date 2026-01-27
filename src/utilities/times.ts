@@ -34,35 +34,36 @@ const defaultFormats = [
 /**
  * Represents parsed time components.
  */
-export interface ParsedTime {
+export interface TimeComponents {
   hours: number;
   minutes: number;
   seconds: number;
+  milliseconds: number;
 }
 
 /**
- * Parses an array of time strings into ParsedTime objects.
+ * Parses an array of time strings into milliseconds since midnight.
  *
  * Attempts to parse all times using a consistent format. If all times in the array
- * can be parsed using the same format, returns an array of ParsedTime objects.
+ * can be parsed using the same format, returns an array of milliseconds since midnight.
  *
  * @param times - The time strings to parse.
  * @param formats - Optional array of date-fns format patterns to try, in order of preference.
  *                  Defaults to common 12-hour and 24-hour time formats.
- * @returns An array of ParsedTime objects corresponding to the input time strings.
+ * @returns An array of milliseconds since midnight corresponding to the input time strings.
  * @throws {Error} If the times cannot be parsed using any of the provided formats.
  *
  * @example
  * ```ts
  * const times = parseTimeStrings(['14:30:00', '09:15:00']);
- * // => [{ hours: 14, minutes: 30, seconds: 0 }, { hours: 9, minutes: 15, seconds: 0 }]
+ * // => [52200000, 33300000]
  * ```
  *
  * @example
  * ```ts
  * // With 12-hour format
  * const times = parseTimeStrings(['2:30 PM', '9:15 AM']);
- * // => [{ hours: 14, minutes: 30, seconds: 0 }, { hours: 9, minutes: 15, seconds: 0 }]
+ * // => [52200000, 33300000]
  * ```
  *
  * @example
@@ -74,19 +75,94 @@ export interface ParsedTime {
 export const parseTimeStrings = (
   times: string[],
   formats = defaultFormats
-): ParsedTime[] => {
+): number[] => {
   for (const format of formats) {
-    const parsedTimes: ParsedTime[] = [];
+    const parsedTimes: number[] = [];
     for (const time of times) {
       const parsed = parse(time, format, new Date(0));
       if (Number.isNaN(parsed.getTime())) break;
-      parsedTimes.push({
-        hours: parsed.getHours(),
-        minutes: parsed.getMinutes(),
-        seconds: parsed.getSeconds(),
-      });
+      const ms =
+        parsed.getHours() * 3600000 +
+        parsed.getMinutes() * 60000 +
+        parsed.getSeconds() * 1000 +
+        parsed.getMilliseconds();
+      parsedTimes.push(ms);
     }
     if (parsedTimes.length === times.length) return parsedTimes;
   }
   throw new Error('Could not parse times');
 };
+
+/**
+ * Converts milliseconds since midnight to time components.
+ *
+ * @param ms - Milliseconds since midnight.
+ * @returns An object with hours, minutes, seconds, and milliseconds.
+ *
+ * @example
+ * ```ts
+ * const components = toTimeComponents(52200000);
+ * // => { hours: 14, minutes: 30, seconds: 0, milliseconds: 0 }
+ * ```
+ */
+export const toTimeComponents = (ms: number): TimeComponents => {
+  const hours = Math.floor(ms / 3600000);
+  const minutes = Math.floor((ms % 3600000) / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000);
+  const milliseconds = ms % 1000;
+  return { hours, minutes, seconds, milliseconds };
+};
+
+/**
+ * Formats milliseconds since midnight to a time string.
+ *
+ * @param ms - Milliseconds since midnight.
+ * @returns A formatted time string in HH:mm:ss format.
+ *
+ * @example
+ * ```ts
+ * formatTimeString(52200000);
+ * // => '14:30:00'
+ * ```
+ */
+export const formatTimeString = (ms: number): string => {
+  const { hours, minutes, seconds } = toTimeComponents(ms);
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+};
+
+/**
+ * Converts time components to milliseconds since midnight.
+ *
+ * This is the inverse of toTimeComponents. All parameters default to 0.
+ *
+ * @param hours - Hours (0-23). Defaults to 0.
+ * @param minutes - Minutes (0-59). Defaults to 0.
+ * @param seconds - Seconds (0-59). Defaults to 0.
+ * @param milliseconds - Milliseconds (0-999). Defaults to 0.
+ * @returns Milliseconds since midnight.
+ *
+ * @example
+ * ```ts
+ * toMs(14, 30);
+ * // => 52200000
+ * ```
+ *
+ * @example
+ * ```ts
+ * toMs();
+ * // => 0
+ * ```
+ *
+ * @example
+ * ```ts
+ * toMs(23, 59, 59, 999);
+ * // => 86399999
+ * ```
+ */
+export const toMs = (
+  hours = 0,
+  minutes = 0,
+  seconds = 0,
+  milliseconds = 0
+): number => hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds;

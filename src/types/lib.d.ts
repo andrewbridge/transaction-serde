@@ -28,6 +28,8 @@ declare module 'transaction-serde' {
   type Transaction = Partial<{
     /** The date of the transaction */
     date: Date;
+    /** The time of the transaction as milliseconds since midnight */
+    time: number;
     /** The transaction amount (positive for income, negative for expenses) */
     amount: number;
     /** The name of the payee or merchant */
