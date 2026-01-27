@@ -84,3 +84,41 @@ test('csv serialiser includes metadata as JSON string', async (t) => {
       '"2024-04-01",100,"Store","{""source"":""bank-api"",""id"":123}"'
   );
 });
+
+test('csv serialiser includes time when present', async (t) => {
+  const dataWithTime = [
+    {
+      date: new UTCDateMini(2024, 3, 1),
+      amount: 100,
+      payee: 'Store',
+      time: 52200000, // 14:30:00
+    },
+  ];
+  t.is(
+    await csv(dataWithTime),
+    '"date",amount,"payee","time"\n' + '"2024-04-01",100,"Store","14:30:00"'
+  );
+});
+
+test('csv serialiser uses empty string for missing time when some have time', async (t) => {
+  const mixedTimeData = [
+    {
+      date: new UTCDateMini(2024, 3, 1),
+      amount: 100,
+      payee: 'Store',
+      time: 52200000, // 14:30:00
+    },
+    {
+      date: new UTCDateMini(2024, 3, 2),
+      amount: 50,
+      payee: 'Shop',
+      // no time
+    },
+  ];
+  t.is(
+    await csv(mixedTimeData),
+    '"date",amount,"payee","time"\n' +
+      '"2024-04-01",100,"Store","14:30:00"\n' +
+      '"2024-04-02",50,"Shop",""'
+  );
+});

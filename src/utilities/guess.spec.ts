@@ -130,6 +130,15 @@ test('guess boosts confidence when sample values look like amounts', (t) => {
   t.is(result.guesses[0].confidence, 'high');
 });
 
+test('guess boosts confidence when sample values look like times', (t) => {
+  const result = guess(['clock'], {
+    sample: [{ clock: '14:30:00' }, { clock: '09:15:00' }],
+  });
+  t.is(result.mapping.time, 'clock');
+  t.is(result.guesses[0].confidence, 'high');
+  t.true(result.guesses[0].reason.includes('boosted'));
+});
+
 test('guess does not boost confidence when sample values are empty', (t) => {
   const result = guess(['When'], {
     sample: [{ When: '' }, { When: '' }],

@@ -147,3 +147,25 @@ test('csv deserialiser handles metadata as object from custom mapper', (t) => {
     },
   ]);
 });
+
+const DATA_WITH_TIME = `"date","amount","payee","time"
+"2024-04-01",134.99,"Acme","14:30:00"
+"2024-04-02",-34.99,"Internet","09:15:00"`;
+
+test('csv deserialiser parses time field', (t) => {
+  const result = csv(DATA_WITH_TIME);
+  t.deepEqual(result, [
+    {
+      date: new UTCDateMini(2024, 3, 1),
+      amount: 134.99,
+      payee: 'Acme',
+      time: 52200000, // 14:30:00
+    },
+    {
+      date: new UTCDateMini(2024, 3, 2),
+      amount: -34.99,
+      payee: 'Internet',
+      time: 33300000, // 09:15:00
+    },
+  ]);
+});

@@ -70,3 +70,18 @@ test('json serialiser will ignore items with invalid dates', async (t) => {
       ']'
   );
 });
+
+test('json serialiser includes time when present', (t) => {
+  const dataWithTime = [
+    {
+      date: new UTCDateMini(2024, 3, 1),
+      amount: 100,
+      payee: 'Store',
+      time: 52200000, // 14:30:00
+    },
+  ];
+  t.is(
+    json(dataWithTime),
+    '[{"date":"2024-04-01","amount":100,"payee":"Store","time":"14:30:00"}]'
+  );
+});

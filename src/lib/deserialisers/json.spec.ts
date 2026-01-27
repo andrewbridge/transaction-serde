@@ -270,3 +270,36 @@ test('json deserialiser ignores invalid metadata JSON string', (t) => {
     },
   ]);
 });
+
+const DATA_WITH_TIME = `[
+    {
+        "date": "2024-04-01",
+        "amount": 134.99,
+        "payee": "Acme",
+        "time": "14:30:00"
+    },
+    {
+        "date": "2024-04-02",
+        "amount": -34.99,
+        "payee": "Internet",
+        "time": "09:15:00"
+    }
+]`;
+
+test('json deserialiser parses time field', (t) => {
+  const result = json(DATA_WITH_TIME);
+  t.deepEqual(result, [
+    {
+      date: new UTCDateMini(2024, 3, 1),
+      amount: 134.99,
+      payee: 'Acme',
+      time: 52200000, // 14:30:00
+    },
+    {
+      date: new UTCDateMini(2024, 3, 2),
+      amount: -34.99,
+      payee: 'Internet',
+      time: 33300000, // 09:15:00
+    },
+  ]);
+});
