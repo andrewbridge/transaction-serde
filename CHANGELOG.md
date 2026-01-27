@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/andrewbridge/transaction-serde/compare/v2.5.0...v3.0.0) (2026-01-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* parseTimeStrings now returns number[] instead of ParsedTime[].
+
+### Features
+
+* add optional time field to Transaction type ([04f0c1f](https://github.com/andrewbridge/transaction-serde/commit/04f0c1f26049eca211cedf346a89b284fb13deed))
+
 ## [2.5.0](https://github.com/andrewbridge/transaction-serde/compare/v2.4.0...v2.5.0) (2026-01-26)
 
 
