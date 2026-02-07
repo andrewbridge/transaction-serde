@@ -13,6 +13,8 @@ declare module 'transaction-serde' {
     | 'date'
     | 'time'
     | 'amount'
+    | 'amount_inflow'
+    | 'amount_outflow'
     | 'payee'
     | 'description'
     | 'category'
@@ -40,6 +42,8 @@ declare module 'transaction-serde' {
     sampleSize?: number;
     /** Whether to attempt parsing dates and amounts (default: true) */
     attemptParsing?: boolean;
+    /** Number of rows to skip before the column headers (default: 0) */
+    skipRows?: number;
   };
 
   /**

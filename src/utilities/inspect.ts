@@ -6,6 +6,7 @@ import { detectFormat, parseCsv, parseJson, tryParseNumber } from './parse';
 const defaultOptions: Required<InspectOptions> = {
   sampleSize: 3,
   attemptParsing: true,
+  skipRows: 0,
 };
 
 /**
@@ -77,7 +78,10 @@ export function inspect(
   input: string,
   options?: InspectOptions
 ): InspectResult {
-  const { sampleSize, attemptParsing } = { ...defaultOptions, ...options };
+  const { sampleSize, attemptParsing, skipRows } = {
+    ...defaultOptions,
+    ...options,
+  };
   const format = detectFormat(input);
 
   let records: Record<string, unknown>[];
@@ -88,7 +92,7 @@ export function inspect(
     records = result.data;
     fields = result.fields;
   } else {
-    const result = parseCsv(input);
+    const result = parseCsv(input, true, skipRows);
     records = result.data;
     fields = result.fields;
   }

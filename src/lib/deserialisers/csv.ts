@@ -9,12 +9,14 @@ import { parseTimeStrings } from '../../utilities/times';
 
 type DeserialiserOptions = {
   headers: boolean;
+  skipRows: number;
 
   map: (object: Record<string, unknown>) => TransactionLike | null;
 };
 
 const defaultOptions: DeserialiserOptions = {
   headers: true,
+  skipRows: 0,
   map: defaultFieldMapper,
 };
 
@@ -55,9 +57,17 @@ const defaultOptions: DeserialiserOptions = {
  * @throws {Error} If the CSV data is invalid.
  * @throws {TypeError} If an amount cannot be parsed as a number.
  */
-const handler: Deserialiser<DeserialiserOptions> = (input, options) => {
-  const { headers, map } = mergeOptions(defaultOptions, options);
-  const objects = parse(input.trim(), { header: headers });
+const handler: Deserialiser<Partial<DeserialiserOptions>> = (
+  input,
+  options
+) => {
+  const { headers, skipRows, map } = mergeOptions(defaultOptions, options);
+  let processedInput = input.trim();
+  if (skipRows > 0) {
+    const lines = processedInput.split('\n');
+    processedInput = lines.slice(skipRows).join('\n');
+  }
+  const objects = parse(processedInput, { header: headers });
   if (objects.errors.length > 0) {
     console.debug(objects.errors);
   }

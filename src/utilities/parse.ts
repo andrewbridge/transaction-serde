@@ -29,8 +29,17 @@ export type JsonParseResult = {
  * @param headers - Whether the CSV has headers (default: true).
  * @returns The parsed records, field names, and any errors.
  */
-export function parseCsv(input: string, headers = true): CsvParseResult {
-  const result = parse(input.trim(), { header: headers });
+export function parseCsv(
+  input: string,
+  headers = true,
+  skipRows = 0
+): CsvParseResult {
+  let processedInput = input.trim();
+  if (skipRows > 0) {
+    const lines = processedInput.split('\n');
+    processedInput = lines.slice(skipRows).join('\n');
+  }
+  const result = parse(processedInput, { header: headers });
   return {
     data: result.data as Record<string, unknown>[],
     fields: result.meta.fields || [],
