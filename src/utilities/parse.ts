@@ -105,6 +105,11 @@ export function tryParseNumber(value: string): number | null {
     return null;
   }
 
+  const prefix = value.slice(0, match.index);
+  if (prefix.length > 0 && /[a-zA-Z]/.test(prefix)) {
+    return null;
+  }
+
   const numericPart = value.slice(match.index);
   const parsed = parseFloat(numericPart);
   if (!Number.isFinite(parsed)) {

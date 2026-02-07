@@ -131,6 +131,12 @@ test('tryParseNumber handles whitespace', (t) => {
   t.is(tryParseNumber('  100  '), 100);
 });
 
+test('tryParseNumber returns null for text with embedded digits', (t) => {
+  t.is(tryParseNumber('CAFE*TH3 BREWHOUSE'), null);
+  t.is(tryParseNumber('A1 STEAK SAUCE'), null);
+  t.is(tryParseNumber('Room 101'), null);
+});
+
 // parseMetadata tests
 test('parseMetadata parses valid JSON string', (t) => {
   t.deepEqual(parseMetadata('{"key": "value"}'), { key: 'value' });

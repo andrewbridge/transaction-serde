@@ -107,6 +107,12 @@ test('inspect preserves non-parseable strings', (t) => {
   t.is(result.sample[0].name, 'Coffee Shop');
 });
 
+test('inspect preserves text with embedded digits', (t) => {
+  const csv = 'description\nCAFE*TH3 BREWHOUSE';
+  const result = inspect(csv, { attemptParsing: true });
+  t.is(result.sample[0].description, 'CAFE*TH3 BREWHOUSE');
+});
+
 // Edge cases
 test('inspect handles whitespace in CSV', (t) => {
   const csv = '  date,amount\n  2024-01-01,100  ';
