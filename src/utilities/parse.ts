@@ -123,6 +123,7 @@ export function tryParseNumber(value: string): number | null {
   // Find the extent of the numeric literal in numericPart using a regex,
   // rather than String(parseFloat(x)) which strips trailing zeros (e.g. "100.50" → "100.5")
   const numericLiteral = numericPart.match(/^-?(\d+\.?\d*|\.\d+)/);
+  /* istanbul ignore if -- defensive: parseFloat succeeding implies digits exist */
   if (!numericLiteral) {
     return null;
   }

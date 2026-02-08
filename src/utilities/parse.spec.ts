@@ -121,6 +121,11 @@ test('tryParseNumber returns null for non-numeric strings', (t) => {
   t.is(tryParseNumber('Coffee Shop'), null);
 });
 
+test('tryParseNumber returns null for date-like strings', (t) => {
+  t.is(tryParseNumber('2024-01-15'), null);
+  t.is(tryParseNumber('2024.01.15'), null);
+});
+
 test('tryParseNumber returns null for Infinity', (t) => {
   t.is(tryParseNumber('Infinity'), null);
   t.is(tryParseNumber('-Infinity'), null);
