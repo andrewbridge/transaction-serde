@@ -52,6 +52,7 @@ const defaultOptions: DeserialiserOptions = {
  * @param input - A CSV string with headers.
  * @param options - Optional configuration for parsing.
  * @param options.headers - Whether the CSV has headers (default: true).
+ * @param options.skipRows - Number of rows to skip before headers (default: 0).
  * @param options.map - Custom function to map CSV rows to transaction-like objects.
  * @returns An array of parsed transaction objects.
  * @throws {Error} If the CSV data is invalid.

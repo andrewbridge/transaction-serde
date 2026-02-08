@@ -112,6 +112,7 @@ const transactions = deserialisers.csv(csvString, {
 
 **Options:**
 - `headers` (boolean): Whether the CSV has headers. Default: `true`
+- `skipRows` (number): Number of rows to skip before the header row. Default: `0`
 - `map` (function): Custom function to map CSV rows to transaction fields
 
 #### `deserialisers.qif(input: string): Transaction[]`
@@ -190,6 +191,7 @@ const report = utils.inspect(csvOrJsonString);
 
 **Options:**
 - `sampleSize` (number): Number of sample records to return. Default: `3`
+- `skipRows` (number): Number of rows to skip before the column headers (CSV only). Default: `0`
 
 #### `utils.guess(fields: string[], options?): GuessResult`
 
@@ -207,6 +209,8 @@ const result = utils.guess(['Transaction Date', 'Value', 'Merchant']);
 **Options:**
 - `minConfidence` ('high' | 'medium'): Minimum confidence to include. Default: `'medium'`
 - `sample` (Record[]): Sample records to analyze for value-based heuristics
+
+Recognises `amount_inflow` and `amount_outflow` targets for bank exports with separate credit/debit columns (e.g. "Paid In", "Debit", "Credit"). Use a custom transform with `createFieldMapper` to combine them into `amount`.
 
 #### `utils.createFieldMapper(mapping): MapFunction`
 

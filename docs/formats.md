@@ -86,6 +86,20 @@ By default, the library expects these exact header names (case-sensitive):
 | `description` | `description` |
 | `category` | `category` |
 
+### Skipping Preamble Rows
+
+Some bank exports include preamble rows (e.g. account info, report titles) before the actual column headers. Use the `skipRows` option to skip these:
+
+```typescript
+deserialisers.csv(input, { skipRows: 2 });
+```
+
+The same option is available on `utils.inspect()` via `InspectOptions`:
+
+```typescript
+utils.inspect(input, { skipRows: 2 });
+```
+
 ### Custom Column Mapping
 
 For CSV files with different column names, use the `map` option:
