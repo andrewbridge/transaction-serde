@@ -34,12 +34,10 @@ export function parseCsv(
   headers = true,
   skipRows = 0
 ): CsvParseResult {
-  let processedInput = input.trim();
-  if (skipRows > 0) {
-    const lines = processedInput.split('\n');
-    processedInput = lines.slice(skipRows).join('\n');
-  }
-  const result = parse(processedInput, { header: headers });
+  const result = parse(input.trim(), {
+    header: headers,
+    skipFirstNLines: skipRows,
+  });
   return {
     data: result.data as Record<string, unknown>[],
     fields: result.meta.fields || [],
@@ -111,11 +109,6 @@ export function detectFormat(input: string): 'csv' | 'json' {
 export function tryParseNumber(value: string): number | null {
   const match = value.match(/[-.\d]/);
   if (!match || match.index === undefined) {
-    return null;
-  }
-
-  const prefix = value.slice(0, match.index);
-  if (prefix.length > 0 && /[a-zA-Z]/.test(prefix)) {
     return null;
   }
 

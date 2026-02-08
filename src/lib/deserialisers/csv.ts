@@ -62,12 +62,10 @@ const handler: Deserialiser<Partial<DeserialiserOptions>> = (
   options
 ) => {
   const { headers, skipRows, map } = mergeOptions(defaultOptions, options);
-  let processedInput = input.trim();
-  if (skipRows > 0) {
-    const lines = processedInput.split('\n');
-    processedInput = lines.slice(skipRows).join('\n');
-  }
-  const objects = parse(processedInput, { header: headers });
+  const objects = parse(input.trim(), {
+    header: headers,
+    skipFirstNLines: skipRows,
+  });
   if (objects.errors.length > 0) {
     console.debug(objects.errors);
   }
