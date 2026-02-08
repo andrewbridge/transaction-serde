@@ -1,6 +1,6 @@
 {
   "name": "transaction-serde",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Transaction serialisation and deserialisation library",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
