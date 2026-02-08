@@ -155,6 +155,42 @@ test('guess does not boost confidence when sample values are not dates or amount
   t.is(result.guesses[0].confidence, 'medium');
 });
 
+// Significance heuristic — embedded digits should not boost
+test('guess does not boost text with embedded digits as amount', (t) => {
+  const result = guess(['Total'], {
+    sample: [
+      { Total: 'CAFE*TH3 BREWHOUSE' },
+      { Total: 'STARBUCKS*DRIVE THRU' },
+    ],
+  });
+  t.is(result.mapping.amount, 'Total');
+  t.is(result.guesses[0].confidence, 'medium');
+});
+
+test('guess boosts confidence when sample values have currency symbols', (t) => {
+  const result = guess(['Total'], {
+    sample: [{ Total: '$100.50' }, { Total: '-25.00' }],
+  });
+  t.is(result.mapping.amount, 'Total');
+  t.is(result.guesses[0].confidence, 'high');
+});
+
+test('guess boosts confidence when sample values are already numbers', (t) => {
+  const result = guess(['Total'], {
+    sample: [{ Total: 100.5 }, { Total: -25 }],
+  });
+  t.is(result.mapping.amount, 'Total');
+  t.is(result.guesses[0].confidence, 'high');
+});
+
+test('guess does not boost text with embedded digits as date', (t) => {
+  const result = guess(['When'], {
+    sample: [{ When: 'CAFE*TH3 BREWHOUSE' }],
+  });
+  t.is(result.mapping.date, 'When');
+  t.is(result.guesses[0].confidence, 'medium');
+});
+
 // Full workflow scenarios
 test('guess handles typical bank export headers', (t) => {
   const result = guess([

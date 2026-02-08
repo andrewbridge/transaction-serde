@@ -1,5 +1,7 @@
 import { parse } from 'papaparse';
 
+import { parseDateStrings } from './dates';
+
 /**
  * Result of parsing a CSV string into records.
  */
@@ -118,12 +120,14 @@ export function tryParseNumber(value: string): number | null {
     return null;
   }
 
-  // Verify the parse consumed all the numeric content
-  // parseFloat("2024-01-15") returns 2024, but "2024" !== "2024-01-15"
-  // parseFloat("100 USD") returns 100, and "100".length < "100 USD".length is ok
-  // because the remainder is non-numeric
-  const parsedStr = String(parsed);
-  const remainder = numericPart.slice(parsedStr.length);
+  // Find the extent of the numeric literal in numericPart using a regex,
+  // rather than String(parseFloat(x)) which strips trailing zeros (e.g. "100.50" → "100.5")
+  const numericLiteral = numericPart.match(/^-?(\d+\.?\d*|\.\d+)/);
+  /* istanbul ignore if -- defensive: parseFloat succeeding implies digits exist */
+  if (!numericLiteral) {
+    return null;
+  }
+  const remainder = numericPart.slice(numericLiteral[0].length);
 
   // If remainder starts with numeric-like characters, parseFloat didn't consume all numbers
   // This catches dates like "2024-01-15" where remainder is "-01-15"
@@ -157,4 +161,22 @@ export function parseMetadata(
     return value;
   }
   return undefined;
+}
+
+/**
+ * Attempts to parse a string as a date, returning an ISO date string if successful.
+ *
+ * @param value - The string to parse as a date.
+ * @returns An ISO date string (YYYY-MM-DD) if valid, or null if parsing failed.
+ */
+export function tryParseDate(value: string): string | null {
+  try {
+    const [parsed] = parseDateStrings([value]);
+    if (parsed instanceof Date && !Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString().split('T')[0];
+    }
+  } catch {
+    // Not a valid date
+  }
+  return null;
 }

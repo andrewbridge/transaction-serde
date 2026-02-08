@@ -183,14 +183,13 @@ const report = utils.inspect(csvOrJsonString);
 // => {
 //   format: 'csv',
 //   fields: ['Date', 'Amount', 'Merchant'],
-//   sample: [{ Date: '2024-01-15', Amount: 100, Merchant: 'Store' }],
+//   sample: [{ Date: '2024-01-15', Amount: '100', Merchant: 'Store' }],
 //   recordCount: 100
 // }
 ```
 
 **Options:**
 - `sampleSize` (number): Number of sample records to return. Default: `3`
-- `attemptParsing` (boolean): Try to parse dates and numbers. Default: `true`
 
 #### `utils.guess(fields: string[], options?): GuessResult`
 

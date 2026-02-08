@@ -6,6 +6,8 @@ import {
   TransactionKey,
 } from 'transaction-serde';
 
+import { tryParseDate, tryParseNumber } from './parse';
+
 const defaultOptions: Required<GuessOptions> = {
   minConfidence: 'medium',
   sample: [],
@@ -143,40 +145,89 @@ const timePatterns = [
 ];
 
 /**
+ * Checks whether a parsed number is a significant portion of the original string,
+ * using tiered thresholds based on whether letters are adjacent to the number.
+ * Numbers embedded in words (e.g. "TH3") require higher significance than
+ * numbers with non-letter prefixes (e.g. "$100").
+ */
+function isSignificantNumber(value: string, parsed: number): boolean {
+  const match = value.match(/[-.\d]/);
+  if (!match?.index && match?.index !== 0) return true;
+
+  // Use a regex to find the numeric literal length, rather than String(parsed)
+  // which strips trailing zeros (e.g. 100.5 → "100.5" but original was "100.50")
+  const numericPart = value.slice(match.index);
+  const numericLiteral = numericPart.match(/^-?(\d+\.?\d*|\.\d+)/);
+  const literalLength = numericLiteral
+    ? numericLiteral[0].length
+    : String(parsed).length;
+
+  const charBefore = match.index > 0 ? value[match.index - 1] : '';
+  const remainder = value.slice(match.index + literalLength);
+  const charAfter = remainder.length > 0 ? remainder[0] : '';
+  const hasLetterBefore = /[a-zA-Z]/.test(charBefore);
+  const hasLetterAfter = /[a-zA-Z]/.test(charAfter);
+
+  const significance = literalLength / value.trim().length;
+  let threshold = 0.1;
+  if (hasLetterBefore && hasLetterAfter) threshold = 0.5;
+  else if (hasLetterBefore || hasLetterAfter) threshold = 0.25;
+
+  return significance >= threshold;
+}
+
+/**
  * Value-based heuristics to improve confidence or suggest type.
  */
 function analyzeValues(values: unknown[]): {
   suggestedType: TransactionKey | null;
   boost: boolean;
 } {
-  const stringValues = values.filter(
-    (v): v is string => typeof v === 'string' && v.length > 0
+  // Filter to meaningful values: non-empty strings or finite numbers
+  const meaningfulValues = values.filter(
+    (v) =>
+      (typeof v === 'string' && v.length > 0) ||
+      (typeof v === 'number' && Number.isFinite(v))
   );
 
-  if (stringValues.length === 0) {
+  if (meaningfulValues.length === 0) {
     return { suggestedType: null, boost: false };
   }
 
-  // Check for date-like values
-  const looksLikeDates = stringValues.every((v) =>
-    datePatterns.some((p) => p.test(v))
+  // Date and time checks only apply when all values are strings
+  const stringValues = meaningfulValues.filter(
+    (v): v is string => typeof v === 'string'
   );
-  if (looksLikeDates) {
-    return { suggestedType: 'date', boost: true };
+
+  if (stringValues.length === meaningfulValues.length) {
+    // Check for date-like values: pattern match + tryParseDate gate
+    const looksLikeDates = stringValues.every(
+      (v) => datePatterns.some((p) => p.test(v)) && tryParseDate(v) !== null
+    );
+    if (looksLikeDates) {
+      return { suggestedType: 'date', boost: true };
+    }
+
+    // Check for time-like values
+    const looksLikeTimes = stringValues.every((v) =>
+      timePatterns.some((p) => p.test(v))
+    );
+    if (looksLikeTimes) {
+      return { suggestedType: 'time', boost: true };
+    }
   }
 
-  // Check for time-like values
-  const looksLikeTimes = stringValues.every((v) =>
-    timePatterns.some((p) => p.test(v))
-  );
-  if (looksLikeTimes) {
-    return { suggestedType: 'time', boost: true };
-  }
-
-  // Check for numeric/amount-like values (currency symbols, numbers with decimals)
-  const looksLikeAmounts = stringValues.every((v) =>
-    /^-?[\d,]+\.?\d*$/.test(v.replace(/[$£€]/g, '').trim())
-  );
+  // Check for numeric/amount-like values:
+  // Values already typed as numbers are strong evidence for amount.
+  // String values need: tryParseNumber gate + regex pattern + significance heuristic.
+  const looksLikeAmounts = meaningfulValues.every((v) => {
+    if (typeof v === 'number') return true;
+    const s = v as string;
+    const parsed = tryParseNumber(s);
+    if (parsed === null) return false;
+    if (!/^-?[\d,]+\.?\d*$/.test(s.replace(/[$£€]/g, '').trim())) return false;
+    return isSignificantNumber(s, parsed);
+  });
   if (looksLikeAmounts) {
     return { suggestedType: 'amount', boost: true };
   }

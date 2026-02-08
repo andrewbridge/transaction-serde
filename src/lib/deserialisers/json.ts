@@ -3,7 +3,7 @@ import { Deserialiser, Transaction, TransactionLike } from 'transaction-serde';
 import { parseDateStrings } from '../../utilities/dates';
 import { defaultFieldMapper } from '../../utilities/fieldMapper';
 import { mergeOptions } from '../../utilities/options';
-import { parseMetadata } from '../../utilities/parse';
+import { parseMetadata, tryParseNumber } from '../../utilities/parse';
 import { parseTimeStrings } from '../../utilities/times';
 
 type DeserialiserOptions = {
@@ -92,10 +92,11 @@ const handler: Deserialiser<DeserialiserOptions> = (input, options) => {
           break;
         case 'amount':
           if (typeof transactionLike.amount === 'string') {
-            transaction.amount = parseFloat(transactionLike.amount);
-            if (!Number.isFinite(transaction.amount)) {
+            const parsed = tryParseNumber(transactionLike.amount);
+            if (parsed === null) {
               throw new TypeError('Could not parse amount');
             }
+            transaction.amount = parsed;
           }
           break;
         case 'payee':
