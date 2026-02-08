@@ -164,6 +164,7 @@ Parses a CSV string with headers into transaction objects.
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `headers` | `boolean` | `true` | Whether the CSV has a header row |
+| `skipRows` | `number` | `0` | Number of rows to skip before the header row |
 | `map` | `function` | (see below) | Custom function to map CSV rows to transaction fields |
 
 The default `map` function extracts fields that match transaction property names:
@@ -436,6 +437,7 @@ Inspects CSV or JSON data and returns a uniform report with headers and sample r
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `sampleSize` | `number` | `3` | Number of sample records to return |
+| `skipRows` | `number` | `0` | Number of rows to skip before the column headers (CSV only) |
 
 **Returns:** `InspectResult`
 
@@ -520,6 +522,8 @@ type FieldGuess = {
 |--------------|---------|
 | `date` | date, transaction date, posting date, value date, effective date |
 | `amount` | amount, value, transaction amount |
+| `amount_inflow` | paid in, money in |
+| `amount_outflow` | paid out, money out |
 | `payee` | payee, merchant, vendor, recipient, beneficiary |
 | `description` | description, memo, note, narrative |
 | `category` | category, classification |
@@ -529,7 +533,9 @@ type FieldGuess = {
 | Target Field | Matches |
 |--------------|---------|
 | `date` | *date (suffix), when, timestamp |
-| `amount` | debit, credit, sum, total, price |
+| `amount` | sum, total, price, cost, *amount (suffix) |
+| `amount_inflow` | credit, deposit, income, *inflow (suffix) |
+| `amount_outflow` | debit, withdrawal, expense, *outflow (suffix) |
 | `payee` | name, counterparty, store |
 | `description` | details, reference, particulars |
 | `category` | type, class, group, tag |
@@ -567,6 +573,7 @@ const boosted = utils.guess(['When', 'Total'], {
 - Each target field is mapped at most once (first match wins)
 - Fields that don't match any pattern are listed in `unmappedFields`
 - Providing sample data can boost medium confidence matches to high
+- `amount_inflow` and `amount_outflow` identify separate credit/debit columns. These are not direct `Transaction` fields — use a custom transform with `createFieldMapper` to combine them into `amount` (see example below)
 
 ---
 
@@ -616,6 +623,8 @@ const transactions = deserialisers.csv(csv, { map: mapper });
 
 ```typescript
 // Handle separate debit/credit columns
+// guess() identifies these as amount_inflow and amount_outflow —
+// use a custom transform to combine them into amount
 const mapper = utils.createFieldMapper({
   date: 'Date',
   amount: (row) => {
