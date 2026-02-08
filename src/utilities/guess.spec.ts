@@ -50,9 +50,9 @@ test('guess matches category exactly', (t) => {
 });
 
 // Medium confidence patterns
-test('guess matches debit as amount with medium confidence', (t) => {
+test('guess matches debit as amount_outflow with medium confidence', (t) => {
   const result = guess(['Debit']);
-  t.is(result.mapping.amount, 'Debit');
+  t.is(result.mapping.amount_outflow, 'Debit');
   t.is(result.guesses[0].confidence, 'medium');
 });
 
@@ -86,13 +86,13 @@ test('guess respects minConfidence high', (t) => {
   // 'date' is high confidence, 'Debit' is medium
   t.is(result.guesses.length, 1);
   t.is(result.mapping.date, 'date');
-  t.is(result.mapping.amount, undefined);
+  t.is(result.mapping.amount_outflow, undefined);
   t.true(result.unmappedFields.includes('Debit'));
 });
 
 test('guess includes medium confidence by default', (t) => {
   const result = guess(['Debit']);
-  t.is(result.mapping.amount, 'Debit');
+  t.is(result.mapping.amount_outflow, 'Debit');
 });
 
 // No duplicate target mappings

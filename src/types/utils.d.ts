@@ -13,6 +13,8 @@ declare module 'transaction-serde' {
     | 'date'
     | 'time'
     | 'amount'
+    | 'amount_inflow'
+    | 'amount_outflow'
     | 'payee'
     | 'description'
     | 'category'
@@ -38,6 +40,8 @@ declare module 'transaction-serde' {
   type InspectOptions = {
     /** Number of sample records to return (default: 3) */
     sampleSize?: number;
+    /** Number of rows to skip before the column headers (default: 0) */
+    skipRows?: number;
   };
 
   /**

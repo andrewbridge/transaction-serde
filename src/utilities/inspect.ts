@@ -4,6 +4,7 @@ import { detectFormat, parseCsv, parseJson } from './parse';
 
 const defaultOptions: Required<InspectOptions> = {
   sampleSize: 3,
+  skipRows: 0,
 };
 
 /**
@@ -35,7 +36,10 @@ export function inspect(
   input: string,
   options?: InspectOptions
 ): InspectResult {
-  const { sampleSize } = { ...defaultOptions, ...options };
+  const { sampleSize, skipRows } = {
+    ...defaultOptions,
+    ...options,
+  };
   const format = detectFormat(input);
 
   let records: Record<string, unknown>[];
@@ -46,7 +50,7 @@ export function inspect(
     records = result.data;
     fields = result.fields;
   } else {
-    const result = parseCsv(input);
+    const result = parseCsv(input, true, skipRows);
     records = result.data;
     fields = result.fields;
   }
