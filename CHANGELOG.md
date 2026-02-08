@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0](https://github.com/andrewbridge/transaction-serde/compare/v3.0.0...v4.0.0) (2026-02-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* `attemptParsing` option removed from `inspect()`.
+Sample values are now always raw strings from the source data.
+
+* chore: add tests to hit 100% coverage
+
+Add test for tryParseNumber rejecting date-like strings (e.g. "2024-01-15").
+Add istanbul ignore for unreachable defensive guard in tryParseNumber
+where numericLiteral regex can't fail if parseFloat already succeeded.
+
+### Bug Fixes
+
+* move value parsing out of inspect into guess and deserialisers ([#4](https://github.com/andrewbridge/transaction-serde/issues/4)) ([98ebc4c](https://github.com/andrewbridge/transaction-serde/commit/98ebc4ca67c162e76e06571d792da972cf386e6e))
+* stop parsing numbers from text like where preceding characters are alphanumeric ([8f562f0](https://github.com/andrewbridge/transaction-serde/commit/8f562f0ddcd03e5513f2942509c103df46384ec4))
+
 ## [3.0.0](https://github.com/andrewbridge/transaction-serde/compare/v2.5.0...v3.0.0) (2026-01-27)
 
 
