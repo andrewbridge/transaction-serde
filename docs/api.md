@@ -436,7 +436,6 @@ Inspects CSV or JSON data and returns a uniform report with headers and sample r
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `sampleSize` | `number` | `3` | Number of sample records to return |
-| `attemptParsing` | `boolean` | `true` | Whether to attempt parsing dates and numbers in the sample |
 
 **Returns:** `InspectResult`
 
@@ -463,21 +462,16 @@ const report = utils.inspect(csv);
 //   format: 'csv',
 //   fields: ['Date', 'Amount', 'Merchant'],
 //   sample: [
-//     { Date: '2024-01-15', Amount: 100, Merchant: 'Store' },
-//     { Date: '2024-01-16', Amount: -50, Merchant: 'Coffee Shop' }
+//     { Date: '2024-01-15', Amount: '100', Merchant: 'Store' },
+//     { Date: '2024-01-16', Amount: '-50', Merchant: 'Coffee Shop' }
 //   ],
 //   recordCount: 2
 // }
-
-// Without parsing
-const rawReport = utils.inspect(csv, { attemptParsing: false });
-// sample: [{ Date: '2024-01-15', Amount: '100', Merchant: 'Store' }, ...]
 ```
 
 **Notes:**
 - Automatically detects JSON vs CSV format
-- When `attemptParsing` is true, numeric values are converted to numbers and date strings to ISO format
-- Values that can't be parsed are returned as raw strings
+- Sample values are returned as raw strings from the source data
 
 ---
 

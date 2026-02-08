@@ -55,7 +55,7 @@ const PARTIALLY_INVALID_DATA = `[
 const INVALID_AMOUNT_DATA = `[
     {
         "date": "2024-04-02",
-        "amount": "$100",
+        "amount": "not a number",
         "payee": "Energy",
         "description": "A-0A00AA00-001",
         "category": "Bills"
@@ -125,6 +125,19 @@ test('json deserialiser ignores items with invalid data types', (t) => {
 
 test('json deserialiser should fail on invalid amount data', (t) => {
   t.throws(() => json(INVALID_AMOUNT_DATA));
+});
+
+test('json deserialiser handles currency-prefixed amounts', (t) => {
+  const data = `[{
+    "date": "2024-04-02",
+    "amount": "$100",
+    "payee": "Energy",
+    "description": "A-0A00AA00-001",
+    "category": "Bills"
+  }]`;
+  const result = json(data) as Transaction[];
+  t.is(result.length, 1);
+  t.is(result[0].amount, 100);
 });
 
 test('json deserialiser ignores invalid optional transaction data', (t) => {

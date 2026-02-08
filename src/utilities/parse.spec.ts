@@ -5,6 +5,7 @@ import {
   parseCsv,
   parseJson,
   parseMetadata,
+  tryParseDate,
   tryParseNumber,
 } from './parse';
 
@@ -100,6 +101,8 @@ test('tryParseNumber parses negative numbers', (t) => {
 test('tryParseNumber parses decimals', (t) => {
   t.is(tryParseNumber('99.99'), 99.99);
   t.is(tryParseNumber('.5'), 0.5);
+  t.is(tryParseNumber('100.50'), 100.5);
+  t.is(tryParseNumber('-25.00'), -25);
 });
 
 test('tryParseNumber handles currency prefix', (t) => {
@@ -147,4 +150,25 @@ test('parseMetadata returns undefined for invalid JSON string', (t) => {
 
 test('parseMetadata returns undefined for undefined input', (t) => {
   t.is(parseMetadata(undefined), undefined);
+});
+
+// tryParseDate tests
+test('tryParseDate parses ISO date', (t) => {
+  t.is(tryParseDate('2024-01-15'), '2024-01-15');
+});
+
+test('tryParseDate parses DD/MM/YYYY date', (t) => {
+  const result = tryParseDate('15/01/2024');
+  t.is(typeof result, 'string');
+  t.truthy(result);
+});
+
+test('tryParseDate returns null for non-date strings', (t) => {
+  t.is(tryParseDate('Coffee Shop'), null);
+  t.is(tryParseDate('CAFE*TH3 BREWHOUSE'), null);
+  t.is(tryParseDate('100.50'), null);
+});
+
+test('tryParseDate returns null for empty string', (t) => {
+  t.is(tryParseDate(''), null);
 });

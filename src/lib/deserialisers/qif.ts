@@ -58,9 +58,14 @@ const handler: Deserialiser = (input: string) => {
       case 'date':
         dates.push({ date: fieldValue, transaction });
         break;
-      case 'amount':
-        transaction.amount = parseFloat(fieldValue);
+      case 'amount': {
+        const parsed = parseFloat(fieldValue);
+        if (!Number.isFinite(parsed)) {
+          throw new TypeError('Could not parse amount');
+        }
+        transaction.amount = parsed;
         break;
+      }
       case 'payee':
       case 'description':
       case 'category':

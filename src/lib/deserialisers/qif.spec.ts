@@ -24,6 +24,26 @@ LBills
 MA-0A00AA00-001
 ^`;
 
+test('qif deserialiser rejects currency-prefixed amounts', (t) => {
+  const data = `!Type:Bank
+D01/04/2024
+T$134.99
+PAcme
+LIncome
+MAcme Salary April
+^`;
+  t.throws(() => qif(data));
+});
+
+test('qif deserialiser throws on invalid amount', (t) => {
+  const data = `!Type:Bank
+D01/04/2024
+Tnot a number
+PAcme
+^`;
+  t.throws(() => qif(data));
+});
+
 test('deserialising qif', (t) => {
   t.deepEqual(qif(DATA), [
     {

@@ -26,7 +26,7 @@ declare module 'transaction-serde' {
     format: 'csv' | 'json';
     /** Field names/headers found in the data */
     fields: string[];
-    /** Sample of first N records, with values as parsed or raw strings */
+    /** Sample of first N records, with values as raw strings */
     sample: Record<string, unknown>[];
     /** Total number of records detected */
     recordCount: number;
@@ -38,8 +38,6 @@ declare module 'transaction-serde' {
   type InspectOptions = {
     /** Number of sample records to return (default: 3) */
     sampleSize?: number;
-    /** Whether to attempt parsing dates and amounts (default: true) */
-    attemptParsing?: boolean;
   };
 
   /**

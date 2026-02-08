@@ -30,7 +30,7 @@ const EMPTY_DATA_ROWS = `"date","amount","payee","description","category"
 "2024-04-02",,"Energy","A-0A00AA00-001","Bills"`;
 
 const INVALID_AMOUNT_ROW = `"date","amount","payee","description","category"
-"2024-04-02",£34.99,"Energy","A-0A00AA00-001","Bills"`;
+"2024-04-02",not a number,"Energy","A-0A00AA00-001","Bills"`;
 
 const INVALID_DATE_ROW = `"date","amount","payee","description","category"
 "13th Smarch 1995",134.99,"Energy","A-0A00AA00-001","Bills"`;
@@ -95,6 +95,14 @@ test('csv deserialiser should fail on invalid amount data', (t) => {
 
 test('csv deserialiser throws when given empty rows', (t) => {
   t.throws(() => csv(EMPTY_INPUT));
+});
+
+test('csv deserialiser handles currency-prefixed amounts', (t) => {
+  const data = `"date","amount","payee","description","category"
+"2024-04-02",£34.99,"Energy","A-0A00AA00-001","Bills"`;
+  const result = csv(data) as Transaction[];
+  t.is(result.length, 1);
+  t.is(result[0].amount, 34.99);
 });
 
 const DATA_WITH_METADATA = `"date","amount","payee","metadata"
