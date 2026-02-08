@@ -16,10 +16,14 @@ Add test for tryParseNumber rejecting date-like strings (e.g. "2024-01-15").
 Add istanbul ignore for unreachable defensive guard in tryParseNumber
 where numericLiteral regex can't fail if parseFloat already succeeded.
 
+### Features
+
+* add `skipRows` option to CSV deserialisation and inspection ([#3](https://github.com/andrewbridge/transaction-serde/pull/3)) ([d433b48](https://github.com/andrewbridge/transaction-serde/commit/d433b481e0a768e99849035b3de83c7056f75fde)) — thanks [@Domoconnor](https://github.com/Domoconnor)
+* add `amount_inflow` and `amount_outflow` field mapping ([#3](https://github.com/andrewbridge/transaction-serde/pull/3)) ([d433b48](https://github.com/andrewbridge/transaction-serde/commit/d433b481e0a768e99849035b3de83c7056f75fde))
+
 ### Bug Fixes
 
 * move value parsing out of inspect into guess and deserialisers ([#4](https://github.com/andrewbridge/transaction-serde/issues/4)) ([98ebc4c](https://github.com/andrewbridge/transaction-serde/commit/98ebc4ca67c162e76e06571d792da972cf386e6e))
-* stop parsing numbers from text like where preceding characters are alphanumeric ([8f562f0](https://github.com/andrewbridge/transaction-serde/commit/8f562f0ddcd03e5513f2942509c103df46384ec4))
 
 ## [3.0.0](https://github.com/andrewbridge/transaction-serde/compare/v2.5.0...v3.0.0) (2026-01-27)
 
