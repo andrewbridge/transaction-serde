@@ -54,6 +54,22 @@ test('parseCsv trims input', (t) => {
   t.is(result.data.length, 1);
 });
 
+test('parseCsv skips rows before headers with skipRows', (t) => {
+  const input = 'junk line\nanother junk line\na,b\n1,2\n3,4';
+  const result = parseCsv(input, true, 2);
+  t.deepEqual(result.fields, ['a', 'b']);
+  t.is(result.data.length, 2);
+  t.deepEqual(result.data[0], { a: '1', b: '2' });
+  t.deepEqual(result.data[1], { a: '3', b: '4' });
+});
+
+test('parseCsv with skipRows 0 does not skip any rows', (t) => {
+  const input = 'a,b\n1,2';
+  const result = parseCsv(input, true, 0);
+  t.deepEqual(result.fields, ['a', 'b']);
+  t.is(result.data.length, 1);
+});
+
 // parseJson tests
 test('parseJson parses JSON array', (t) => {
   const result = parseJson('[{"a":1},{"b":2}]');

@@ -160,6 +160,33 @@ const DATA_WITH_TIME = `"date","amount","payee","time"
 "2024-04-01",134.99,"Acme","14:30:00"
 "2024-04-02",-34.99,"Internet","09:15:00"`;
 
+const DATA_WITH_SKIP_ROWS = `Report generated 2024-04-01
+Exported by admin
+"date","amount","payee","description","category"
+"2024-04-01",134.99,"Acme","Acme Salary April","Income"
+"2024-04-02",-34.99,"Internet","INET12345678-0","Bills"`;
+
+test('csv deserialiser skips rows before headers with skipRows option', (t) => {
+  const result = csv(DATA_WITH_SKIP_ROWS, { skipRows: 2 }) as Transaction[];
+  t.is(result.length, 2);
+  t.deepEqual(result, [
+    {
+      date: new UTCDateMini(2024, 3, 1),
+      amount: 134.99,
+      payee: 'Acme',
+      description: 'Acme Salary April',
+      category: 'Income',
+    },
+    {
+      date: new UTCDateMini(2024, 3, 2),
+      amount: -34.99,
+      payee: 'Internet',
+      description: 'INET12345678-0',
+      category: 'Bills',
+    },
+  ]);
+});
+
 test('csv deserialiser parses time field', (t) => {
   const result = csv(DATA_WITH_TIME);
   t.deepEqual(result, [

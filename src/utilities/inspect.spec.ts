@@ -125,3 +125,20 @@ test('inspect handles empty values', (t) => {
   const result = inspect(csv);
   t.is(result.sample.length, 2);
 });
+
+// skipRows tests
+test('inspect skips rows before headers with skipRows option', (t) => {
+  const csv =
+    'Report generated 2024-01-01\nExported by admin\ndate,amount\n2024-01-01,100\n2024-01-02,200';
+  const result = inspect(csv, { skipRows: 2 });
+  t.deepEqual(result.fields, ['date', 'amount']);
+  t.is(result.recordCount, 2);
+  t.is(result.sample[0].date, '2024-01-01');
+});
+
+test('inspect skipRows does not affect JSON format', (t) => {
+  const json = '[{"a":1},{"a":2}]';
+  const result = inspect(json, { skipRows: 5 });
+  t.is(result.format, 'json');
+  t.is(result.recordCount, 2);
+});
